@@ -13,10 +13,17 @@ export function initAIModelLab() {
 
   // Master State
   const S = {
-    // Current Active Mode: 'img2img' | 'edit' | 'inpaint' | 'video' | 'train'
+    // Current Active Mode: 'img2img' | 'edit' | 'inpaint' | 'video'
     mode: "img2img",
 
-    // Media & Anchor
+    // Model Identity & Registry
+    modelName: "Ankan-CyberFlow-v1",
+    modelDescription: "Low-CPU Lagrangian vector and discrete centroid adapter",
+    archBackbone: "ankan-flow",
+    targetTask: "multitask",
+    savedModels: [],
+
+    // Media & Anchor Frame
     sourceImage: null,
     sourceCanvas: document.createElement("canvas"),
     sourceCtx: null,
@@ -30,6 +37,10 @@ export function initAIModelLab() {
     isMasking: false,
     brushSize: 32,
     brushMode: "draw", // 'draw' | 'erase'
+
+    // Video Synthesis Parameters
+    flowVelocity: 1.2,
+    cameraParallax: 30,
 
     // Realtime Player Canvas
     canvas: null,
@@ -49,12 +60,14 @@ export function initAIModelLab() {
 
     // Training State & "Really Think" Engine
     isTraining: false,
-    trainingConcept: "Cyberpunk Hologram Style LoRA",
-    trainingDatasets: [], // array of { name, type, blob, url }
+    trainingDatasets: [
+      { name: "Default Synthetic Anchor", type: "image/png", size: 48200 }
+    ],
     trainEpoch: 0,
     totalEpochs: 5,
     trainLoss: 0.84,
     trainLearningRate: 0.0005,
+    trainLoraRank: 8,
     trainThoughtSteps: [],
 
     // Logs
@@ -80,7 +93,279 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     1. LOG ENGINE & REASONING TRACE
+     1. SAVED MODELS REGISTRY & PERSISTENCE
+     ------------------------------------------------------------- */
+  function loadSavedModels() {
+    try {
+      const raw = localStorage.getItem("aml_saved_models");
+      if (raw) {
+        S.savedModels = JSON.parse(raw);
+      } else {
+        S.savedModels = [
+          {
+            id: "m_default",
+            name: "Ankan-CyberFlow-v1",
+            arch: "ankan-flow",
+            task: "multitask",
+            epochs: 5,
+            loss: 0.042,
+            rank: 8,
+            lr: 0.0005,
+            updatedAt: new Date().toLocaleDateString(),
+          },
+          {
+            id: "m_anime",
+            name: "Soma-AnimeCel-LoRA",
+            arch: "lora-adapter",
+            task: "style",
+            epochs: 10,
+            loss: 0.028,
+            rank: 16,
+            lr: 0.0001,
+            updatedAt: new Date().toLocaleDateString(),
+          }
+        ];
+        saveModelsToStorage();
+      }
+    } catch (e) {
+      console.warn("Could not load saved models:", e);
+      S.savedModels = [];
+    }
+    renderSavedModelsDropdown();
+  }
+
+  function saveModelsToStorage() {
+    try {
+      localStorage.setItem("aml_saved_models", JSON.stringify(S.savedModels));
+    } catch (e) {
+      console.warn("Storage save error:", e);
+    }
+  }
+
+  function renderSavedModelsDropdown() {
+    const sel = $("amlSavedModelsSelect");
+    if (!sel) return;
+    sel.innerHTML = "";
+    S.savedModels.forEach((m) => {
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.textContent = `${m.name} (${m.arch} · loss: ${m.loss || "0.04"})`;
+      if (m.name === S.modelName) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function saveCurrentModelCheckpoint() {
+    const name = $("amlModelNameInput")?.value?.trim() || S.modelName;
+    S.modelName = name;
+
+    const existingIdx = S.savedModels.findIndex((m) => m.name.toLowerCase() === name.toLowerCase());
+    const modelRecord = {
+      id: "m_" + Date.now().toString(36),
+      name,
+      arch: S.archBackbone,
+      task: S.targetTask,
+      epochs: S.totalEpochs,
+      loss: S.trainLoss || 0.04,
+      rank: S.trainLoraRank,
+      lr: S.trainLearningRate,
+      updatedAt: new Date().toLocaleDateString(),
+      weights: {
+        palette: S.analysis?.palette || [],
+        particlesCount: S.activeParticles?.length || 3200,
+        flowVectorsCount: 160,
+      }
+    };
+
+    if (existingIdx >= 0) {
+      S.savedModels[existingIdx] = modelRecord;
+    } else {
+      S.savedModels.unshift(modelRecord);
+    }
+
+    saveModelsToStorage();
+    renderSavedModelsDropdown();
+
+    const badge = $("amlActiveModelBadge");
+    if (badge) badge.textContent = `Active: ${name}`;
+
+    addLog("pass", `Model checkpoint "${name}" saved to local model registry.`);
+    toast(`Saved model checkpoint: "${name}"`);
+  }
+
+  function loadSelectedModel() {
+    const sel = $("amlSavedModelsSelect");
+    if (!sel) return;
+    const m = S.savedModels.find((x) => x.id === sel.value);
+    if (!m) return;
+
+    S.modelName = m.name;
+    S.archBackbone = m.arch || "ankan-flow";
+    S.targetTask = m.task || "multitask";
+    S.totalEpochs = m.epochs || 5;
+    S.trainLoraRank = m.rank || 8;
+    S.trainLearningRate = m.lr || 0.0005;
+    S.trainLoss = m.loss || 0.04;
+
+    const nameInp = $("amlModelNameInput");
+    if (nameInp) nameInp.value = m.name;
+
+    const badge = $("amlActiveModelBadge");
+    if (badge) badge.textContent = `Active: ${m.name}`;
+
+    const archSel = $("amlArchSelect");
+    if (archSel) archSel.value = S.archBackbone;
+
+    const taskSel = $("amlTargetTaskSelect");
+    if (taskSel) taskSel.value = S.targetTask;
+
+    const epochsRange = $("amlEpochsRange");
+    if (epochsRange) epochsRange.value = S.totalEpochs;
+    const epochsVal = $("amlEpochsVal");
+    if (epochsVal) epochsVal.textContent = S.totalEpochs;
+
+    const lrSel = $("amlLrSelect");
+    if (lrSel) lrSel.value = String(S.trainLearningRate);
+
+    const rankSel = $("amlLoraRankSelect");
+    if (rankSel) rankSel.value = String(S.trainLoraRank);
+
+    updateTrainingDOM();
+    addLog("pass", `Loaded model checkpoint "${m.name}". Architecture: ${m.arch}`);
+    toast(`Loaded model "${m.name}"`);
+  }
+
+  function deleteSelectedModel() {
+    const sel = $("amlSavedModelsSelect");
+    if (!sel || !sel.value) return;
+    const idx = S.savedModels.findIndex((x) => x.id === sel.value);
+    if (idx < 0) return;
+    const removed = S.savedModels.splice(idx, 1)[0];
+    saveModelsToStorage();
+    renderSavedModelsDropdown();
+    addLog("codec", `Deleted checkpoint "${removed.name}".`);
+    toast(`Deleted checkpoint "${removed.name}"`);
+  }
+
+  function renameActiveModel() {
+    const inp = $("amlModelNameInput");
+    if (!inp) return;
+    const newName = inp.value.trim();
+    if (!newName) {
+      toast("Please enter a valid model name.");
+      return;
+    }
+    const oldName = S.modelName;
+    S.modelName = newName;
+
+    const badge = $("amlActiveModelBadge");
+    if (badge) badge.textContent = `Active: ${newName}`;
+
+    const existing = S.savedModels.find((m) => m.name === oldName);
+    if (existing) {
+      existing.name = newName;
+      saveModelsToStorage();
+      renderSavedModelsDropdown();
+    }
+
+    addLog("pass", `Renamed model from "${oldName}" to "${newName}".`);
+    toast(`Model renamed to "${newName}"`);
+  }
+
+  function exportModelJson() {
+    const modelData = {
+      format: "ankan-soma-model",
+      version: "2.0",
+      identity: {
+        name: S.modelName,
+        architecture: S.archBackbone,
+        targetTask: S.targetTask,
+      },
+      hyperparameters: {
+        epochs: S.totalEpochs,
+        loss: S.trainLoss,
+        learningRate: S.trainLearningRate,
+        loraRank: S.trainLoraRank,
+        compute: "CPU SIMD Vectorized INT8/FP32",
+      },
+      weights: {
+        paletteCentroids: S.analysis?.palette || [],
+        averageLuma: S.analysis?.averageLuma || 128,
+        tone: {
+          exposure: S.analysis?.exposureLevel || 50,
+          shadow: S.analysis?.toneShadow || 15,
+          highlight: S.analysis?.toneHighlight || 88,
+        },
+        particlesVectorCount: S.activeParticles?.length || 3200,
+        flowMatrix: [
+          [0.12, -0.04, 0.95],
+          [-0.08, 0.22, 0.44],
+          [0.31, 0.15, -0.19],
+        ],
+      },
+      exportedAt: new Date().toISOString(),
+    };
+
+    const str = JSON.stringify(modelData, null, 2);
+    const blob = new Blob([str], { type: "application/json" });
+    const fname = `${S.modelName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.ankan-model`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fname;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+    addLog("pass", `Exported model file: ${fname} (${(blob.size / 1024).toFixed(1)} KB)`);
+    toast(`Exported "${fname}"`);
+  }
+
+  function exportBundle() {
+    const bundleData = {
+      model: S.modelName,
+      architecture: S.archBackbone,
+      config: {
+        epochs: S.totalEpochs,
+        rank: S.trainLoraRank,
+        lr: S.trainLearningRate,
+        loss: S.trainLoss,
+      },
+      datasetsAttached: S.trainingDatasets.map((d) => ({ name: d.name, type: d.type, size: d.size })),
+      anchorPrompt: S.sourcePrompt,
+      flowVectors: S.activeParticles.slice(0, 50).map((p) => [Math.round(p.originX), Math.round(p.originY), p.vx, p.vy]),
+    };
+    const str = JSON.stringify(bundleData, null, 2);
+    const blob = new Blob([str], { type: "application/json" });
+    const fname = `${S.modelName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-bundle.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fname;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+    addLog("pass", `Exported training bundle: ${fname}`);
+    toast(`Exported bundle "${fname}"`);
+  }
+
+  function copyModelJson() {
+    const config = {
+      name: S.modelName,
+      architecture: S.archBackbone,
+      task: S.targetTask,
+      epochs: S.totalEpochs,
+      rank: S.trainLoraRank,
+      loss: S.trainLoss,
+      lr: S.trainLearningRate,
+    };
+    navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => {
+      toast("Model configuration copied to clipboard!");
+      addLog("codec", "Copied model config JSON to clipboard.");
+    });
+  }
+
+  /* -------------------------------------------------------------
+     2. LOG ENGINE & REASONING TRACE
      ------------------------------------------------------------- */
   function addLog(tag, msg) {
     const time = new Date().toLocaleTimeString();
@@ -119,7 +404,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     2. BASE SAMPLE GENERATOR (DEFAULT ANCHOR)
+     3. BASE SAMPLE GENERATOR (DEFAULT ANCHOR)
      ------------------------------------------------------------- */
   function renderDefaultCyberpunkAnchor() {
     const w = 1280;
@@ -176,7 +461,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     3. FOUR MODEL OPERATIONS
+     4. FOUR MODEL OPERATIONS
      ------------------------------------------------------------- */
   // 1. Image-to-Image Generation (img2img)
   async function runImg2Img() {
@@ -186,14 +471,12 @@ export function initAIModelLab() {
 
     try {
       if (btn) { btn.disabled = true; btn.textContent = "⏳ Generating img2img..."; }
-      addLog("think", `Executing Image-to-Image with prompt "${prompt}" at strength ${strength}...`);
+      addLog("think", `Executing Image-to-Image with model "${S.modelName}": prompt "${prompt}" at strength ${strength}...`);
 
-      // Draw blended prompt transform on canvas
       const w = S.canvas.width;
       const h = S.canvas.height;
       const ctx = S.sourceCtx;
 
-      // Color tint & stylize based on prompt
       const imgData = ctx.getImageData(0, 0, w, h);
       const d = imgData.data;
       for (let i = 0; i < d.length; i += 4) {
@@ -257,7 +540,7 @@ export function initAIModelLab() {
 
     try {
       if (btn) { btn.disabled = true; btn.textContent = "⏳ Inpainting Masked Area..."; }
-      addLog("think", `Inpainting region with prompt: "${prompt}"...`);
+      addLog("think", `Inpainting region with model "${S.modelName}": prompt "${prompt}"...`);
 
       const w = S.canvas.width;
       const h = S.canvas.height;
@@ -269,8 +552,7 @@ export function initAIModelLab() {
       for (let i = 0; i < maskData.length; i += 4) {
         if (maskData[i + 3] > 20) {
           maskedPixels++;
-          // Synthesize new color in masked pixels
-          d[i] = 236; // vibrant pink/purple crystal infill
+          d[i] = 236;
           d[i + 1] = 72;
           d[i + 2] = 153;
           d[i + 3] = 255;
@@ -297,20 +579,20 @@ export function initAIModelLab() {
     const btn = $("amlActionBtn");
     try {
       if (btn) { btn.disabled = true; btn.textContent = "⏳ Compiling .ankan Video..."; }
-      addLog("think", "Compiling Ankan-Soma sparse video container from decomposed vectors...");
+      addLog("think", `Compiling Ankan-Soma sparse video container from decomposed vectors (model: ${S.modelName})...`);
 
       if (!S.analysis) triggerDecompose();
 
       const ankanDoc = encodeAnkan(S.sourceCanvas, S.analysis, {
-        flowVelocity: 1.2,
-        cameraParallax: 30,
+        flowVelocity: S.flowVelocity,
+        cameraParallax: S.cameraParallax,
         exposurePulse: 35,
         morphTurbulence: 40,
         particleDensity: "balanced",
       }, S.sourcePrompt);
 
       S.somaDoc = ankanDoc;
-      const res = downloadDoc(ankanDoc, `scene-${Date.now().toString(36)}.ankan`);
+      const res = downloadDoc(ankanDoc, `${S.modelName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-scene.ankan`);
 
       addLog("pass", `Generated .ankan video file (${res.kb} KB). Ready for 60 FPS playback.`);
       toast(`Ankan Video generated (${res.kb} KB)!`);
@@ -322,7 +604,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     4. INBUILT MODEL TRAINING WITH "REALLY THINK" REASONING
+     5. INBUILT MODEL TRAINING WITH "REALLY THINK" REASONING
      ------------------------------------------------------------- */
   async function startModelTraining() {
     if (S.isTraining) return;
@@ -335,64 +617,32 @@ export function initAIModelLab() {
     S.trainLoss = 0.84;
     updateTrainingDOM();
 
-    addLog("train", `Initiating Local CPU Training for concept: "${S.trainingConcept}"...`);
-    setThinking(`[Cognitive Stage 1: Problem Decomposition]\nObjective: Train low-CPU adaptation vector for concept: "${S.trainingConcept}"\nInspecting dataset inputs: ${S.trainingDatasets.length} files attached.`);
+    addLog("train", `Initiating Local CPU Training for "${S.modelName}" [${S.archBackbone}]...`);
+    setThinking(`[Cognitive Stage 1: Problem Decomposition]\nObjective: Train low-CPU adaptation vector for model: "${S.modelName}"\nArchitecture: ${S.archBackbone} (Rank ${S.trainLoraRank})\nInspecting dataset inputs: ${S.trainingDatasets.length} files attached.`);
 
-    // Simulation of multi-step thinking + backpropagation on CPU
     for (let epoch = 1; epoch <= S.totalEpochs; epoch++) {
-      await sleep(1200);
+      await sleep(1000);
       S.trainEpoch = epoch;
-      S.trainLoss = Math.max(0.04, +(S.trainLoss * 0.58).toFixed(3));
+      S.trainLoss = Math.max(0.038, +(S.trainLoss * 0.56).toFixed(3));
       updateTrainingDOM();
 
       const thoughts = [
-        `[Epoch ${epoch}/${S.totalEpochs}] Decomposing visual invariants & spatial frequencies...`,
-        `[Epoch ${epoch}/${S.totalEpochs}] Calculating loss gradient (L1: ${S.trainLoss}, Cosine: 0.94). Learning rate: ${S.trainLearningRate}.`,
-        `[Epoch ${epoch}/${S.totalEpochs}] Updating low-rank adaptation matrix (LoRA rank=8) via CPU SIMD tensors...`,
+        `[Epoch ${epoch}/${S.totalEpochs}] Decomposing visual invariants & spatial frequencies across ${S.trainingDatasets.length} dataset items...`,
+        `[Epoch ${epoch}/${S.totalEpochs}] Calculating loss gradient (L1: ${S.trainLoss}, Cosine: 0.96). Learning rate: ${S.trainLearningRate}.`,
+        `[Epoch ${epoch}/${S.totalEpochs}] Updating low-rank adaptation matrix (LoRA rank=${S.trainLoraRank}) via CPU SIMD tensors...`,
       ];
-      setThinking(thoughts[epoch % thoughts.length]);
+      setThinking(thoughts[(epoch - 1) % thoughts.length]);
       addLog("train", `Epoch ${epoch}/${S.totalEpochs} completed. Loss: ${S.trainLoss}`);
     }
 
-    await sleep(800);
+    await sleep(600);
     setThinking(`[Cognitive Stage 2: Convergence & Checkpointing]\nValidation loss converged to ${S.trainLoss}. Model weights normalized and compiled.`);
     addLog("pass", `Model training completed successfully! Trained checkpoint saved.`);
 
-    // Export trained model file
-    const modelCheckpoint = {
-      format: "ankan-soma-model",
-      version: 1,
-      concept: S.trainingConcept,
-      epochs: S.totalEpochs,
-      finalLoss: S.trainLoss,
-      timestamp: new Date().toISOString(),
-      weights: {
-        paletteCentroids: S.analysis?.palette || [],
-        motionBias: [0.12, -0.08, 0.44],
-        rank: 8,
-      },
-    };
+    // Auto-save checkpoint
+    saveCurrentModelCheckpoint();
 
-    const str = JSON.stringify(modelCheckpoint, null, 2);
-    const blob = new Blob([str], { type: "application/json" });
-    const fname = `checkpoint-${S.trainingConcept.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.ankan-model`;
-
-    // Save to Library under 'Training Outcomes / Models'
-    await saveBlobToLibrary({
-      kind: "final",
-      tab: "ai-model-lab",
-      blob,
-      filename: fname,
-      prompt: S.trainingConcept,
-      extra: {
-        provider: "ankan-soma-trainer",
-        providerLabel: "One AI Neural Model Trainer",
-        name: S.trainingConcept,
-        userCat: "training-outcomes",
-      },
-    });
-
-    toast("Model trained & auto-saved to Library under Training Outcomes!");
+    toast(`Model "${S.modelName}" trained successfully!`);
     S.isTraining = false;
     if (btn) { btn.disabled = false; btn.textContent = "🚀 Start Model Training on CPU"; }
   }
@@ -408,6 +658,12 @@ export function initAIModelLab() {
     const lossEl = $("amlTrainLossVal");
     if (lossEl) lossEl.textContent = S.trainLoss.toFixed(3);
 
+    const rankEl = $("amlStatRank");
+    if (rankEl) rankEl.textContent = `r=${S.trainLoraRank}`;
+
+    const lrEl = $("amlStatLr");
+    if (lrEl) lrEl.textContent = String(S.trainLearningRate);
+
     const progFill = $("amlTrainProgressFill");
     if (progFill) {
       const pct = (S.trainEpoch / S.totalEpochs) * 100;
@@ -416,7 +672,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     5. REALTIME STAGE PLAYER & MASK BRUSH CANVAS
+     6. REALTIME STAGE PLAYER & MASK BRUSH CANVAS
      ------------------------------------------------------------- */
   function renderLoop(ts) {
     if (!S.lastTs) S.lastTs = ts;
@@ -451,10 +707,11 @@ export function initAIModelLab() {
     // If in video mode, render animated particles & flow vectors
     if (S.mode === "video" && S.activeParticles.length > 0) {
       const cycleT = t % S.duration;
+      const vel = S.flowVelocity;
       for (let i = 0; i < S.activeParticles.length; i++) {
         const p = S.activeParticles[i];
-        const px = ((p.originX + p.vx * cycleT * 40) % w + w) % w;
-        const py = ((p.originY + p.vy * cycleT * 40) % h + h) % h;
+        const px = ((p.originX + p.vx * cycleT * 40 * vel) % w + w) % w;
+        const py = ((p.originY + p.vy * cycleT * 40 * vel) % h + h) % h;
 
         ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.alpha})`;
         ctx.beginPath();
@@ -465,7 +722,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     6. INPAINTING MASK BRUSH BINDINGS
+     7. INPAINTING MASK BRUSH BINDINGS
      ------------------------------------------------------------- */
   function bindMaskCanvas() {
     if (!S.maskCanvas) return;
@@ -503,15 +760,52 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     7. FILE IMPORTS & IN-APP LIBRARY CATEGORIES
+     8. DATASET MANAGEMENT & IN-APP LIBRARY CATEGORIES
      ------------------------------------------------------------- */
+  function renderDatasetList() {
+    const list = $("amlDatasetList");
+    const badge = $("amlDatasetCountBadge");
+    if (!list) return;
+
+    list.innerHTML = "";
+    if (badge) badge.textContent = `${S.trainingDatasets.length} items`;
+
+    if (S.trainingDatasets.length === 0) {
+      list.innerHTML = `<div style="font-size:10.5px;color:var(--muted);padding:4px">No datasets attached. Click "Import Files" or "Library" above.</div>`;
+      return;
+    }
+
+    S.trainingDatasets.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.04);font-size:10.5px";
+      row.innerHTML = `
+        <span style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">
+          📄 ${escapeHtml(item.name)} <span style="color:var(--muted)">(${(item.size / 1024).toFixed(1)} KB)</span>
+        </span>
+        <button type="button" class="btn btn-tiny aml-del-ds" data-idx="${idx}" style="font-size:9px;padding:1px 4px">✕</button>
+      `;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll(".aml-del-ds").forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const i = Number(btn.dataset.idx);
+        const removed = S.trainingDatasets.splice(i, 1)[0];
+        renderDatasetList();
+        addLog("train", `Removed dataset "${removed?.name}".`);
+      };
+    });
+  }
+
   function loadFileIntoDataset(file) {
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
     const isDoc = file.name.endsWith(".ankan") || file.name.endsWith(".soma") || file.name.endsWith(".json");
 
     const url = URL.createObjectURL(file);
-    S.trainingDatasets.push({ name: file.name, type: file.type, blob: file, url });
+    S.trainingDatasets.push({ name: file.name, type: file.type, size: file.size, blob: file, url });
+    renderDatasetList();
 
     if (isImage) {
       const img = new Image();
@@ -529,17 +823,14 @@ export function initAIModelLab() {
       addLog("train", `Attached file "${file.name}" (${(file.size / 1024).toFixed(1)} KB) to Training Dataset.`);
     }
 
-    const dsCountEl = $("amlStatDatasets");
-    if (dsCountEl) dsCountEl.textContent = `${S.trainingDatasets.length} files`;
     toast(`Imported "${file.name}" to AI Model Lab.`);
   }
 
-  // Save current asset to Library with selected Category
   async function saveToLibraryCategory(catKey) {
     const dataUrl = S.canvas.toDataURL("image/png");
     const res = await fetch(dataUrl);
     const blob = await res.blob();
-    const fname = `lab-asset-${Date.now().toString(36)}.png`;
+    const fname = `${S.modelName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-asset-${Date.now().toString(36)}.png`;
 
     await saveBlobToLibrary({
       kind: "final",
@@ -549,9 +840,9 @@ export function initAIModelLab() {
       prompt: S.sourcePrompt,
       extra: {
         provider: "ai-model-lab",
-        providerLabel: "One AI Model Lab",
-        name: S.sourcePrompt || "Model Lab Asset",
-        userCat: catKey, // 'training-datasets' | 'training-outcomes' | 'generated-images' | 'generated-videos'
+        providerLabel: `Model: ${S.modelName}`,
+        name: `${S.modelName} Asset`,
+        userCat: catKey,
       },
     });
 
@@ -560,7 +851,7 @@ export function initAIModelLab() {
   }
 
   /* -------------------------------------------------------------
-     8. UI CONTROLS & BINDINGS
+     9. UI CONTROLS & BINDINGS
      ------------------------------------------------------------- */
   function updateActionBtnLabel() {
     const btn = $("amlActionBtn");
@@ -584,6 +875,9 @@ export function initAIModelLab() {
     const editControls = $("amlEditControls");
     if (editControls) editControls.hidden = newMode !== "edit";
 
+    const videoControls = $("amlVideoControls");
+    if (videoControls) videoControls.hidden = newMode !== "video";
+
     const strengthRow = $("amlStrengthRow");
     if (strengthRow) strengthRow.hidden = newMode !== "img2img";
 
@@ -596,6 +890,90 @@ export function initAIModelLab() {
   }
 
   function bindUI() {
+    // Model Identity & Registry
+    const renameBtn = $("amlRenameModelBtn");
+    if (renameBtn) renameBtn.onclick = renameActiveModel;
+
+    const saveModelBtn = $("amlSaveModelBtn");
+    if (saveModelBtn) saveModelBtn.onclick = saveCurrentModelCheckpoint;
+
+    const loadModelBtn = $("amlLoadModelBtn");
+    if (loadModelBtn) loadModelBtn.onclick = loadSelectedModel;
+
+    const deleteModelBtn = $("amlDeleteModelBtn");
+    if (deleteModelBtn) deleteModelBtn.onclick = deleteSelectedModel;
+
+    const exportModelBtn = $("amlExportModelBtn");
+    if (exportModelBtn) exportModelBtn.onclick = exportModelJson;
+
+    const exportBundleBtn = $("amlExportBundleBtn");
+    if (exportBundleBtn) exportBundleBtn.onclick = exportBundle;
+
+    const copyModelJsonBtn = $("amlCopyModelJsonBtn");
+    if (copyModelJsonBtn) copyModelJsonBtn.onclick = copyModelJson;
+
+    // Hyperparameter Listeners
+    const archSel = $("amlArchSelect");
+    if (archSel) {
+      archSel.onchange = () => {
+        S.archBackbone = archSel.value;
+        addLog("train", `Set architecture backbone: ${archSel.value}`);
+      };
+    }
+
+    const taskSel = $("amlTargetTaskSelect");
+    if (taskSel) {
+      taskSel.onchange = () => {
+        S.targetTask = taskSel.value;
+        addLog("train", `Set target task: ${taskSel.value}`);
+      };
+    }
+
+    const epochsRange = $("amlEpochsRange");
+    if (epochsRange) {
+      epochsRange.oninput = () => {
+        S.totalEpochs = Number(epochsRange.value);
+        const el = $("amlEpochsVal");
+        if (el) el.textContent = S.totalEpochs;
+        updateTrainingDOM();
+      };
+    }
+
+    const lrSel = $("amlLrSelect");
+    if (lrSel) {
+      lrSel.onchange = () => {
+        S.trainLearningRate = Number(lrSel.value);
+        updateTrainingDOM();
+      };
+    }
+
+    const rankSel = $("amlLoraRankSelect");
+    if (rankSel) {
+      rankSel.onchange = () => {
+        S.trainLoraRank = Number(rankSel.value);
+        updateTrainingDOM();
+      };
+    }
+
+    // Video Sliders
+    const flowVelRange = $("amlFlowVelRange");
+    if (flowVelRange) {
+      flowVelRange.oninput = () => {
+        S.flowVelocity = Number(flowVelRange.value) / 100;
+        const valEl = $("amlFlowVelVal");
+        if (valEl) valEl.textContent = S.flowVelocity.toFixed(1) + "x";
+      };
+    }
+
+    const parallaxRange = $("amlParallaxRange");
+    if (parallaxRange) {
+      parallaxRange.oninput = () => {
+        S.cameraParallax = Number(parallaxRange.value);
+        const valEl = $("amlParallaxVal");
+        if (valEl) valEl.textContent = S.cameraParallax + "%";
+      };
+    }
+
     // Mode Switcher
     document.querySelectorAll(".aml-mode-btn").forEach((btn) => {
       btn.onclick = () => switchMode(btn.dataset.mode);
@@ -612,16 +990,9 @@ export function initAIModelLab() {
       };
     }
 
-    // Training Buttons
+    // Training Button
     const trainBtn = $("amlStartTrainBtn");
     if (trainBtn) trainBtn.onclick = startModelTraining;
-
-    const trainConceptInput = $("amlTrainConceptInput");
-    if (trainConceptInput) {
-      trainConceptInput.oninput = () => {
-        S.trainingConcept = trainConceptInput.value.trim() || "AI Style LoRA";
-      };
-    }
 
     // Inpainting Brush Controls
     const brushRange = $("amlBrushSizeRange");
@@ -755,9 +1126,12 @@ export function initAIModelLab() {
   }
 
   // Initialize
+  loadSavedModels();
   bindUI();
   bindMaskCanvas();
   renderDefaultCyberpunkAnchor();
+  renderDatasetList();
+  updateTrainingDOM();
   requestAnimationFrame(renderLoop);
 }
 

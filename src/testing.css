@@ -1,0 +1,3 @@
+.test-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+#testCanvas { width: 100%; border-radius: 10px; background: #0c101d; }
+.test-note { margin-top: 8px; }

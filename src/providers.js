@@ -1355,10 +1355,16 @@ export const MUAPI_PROVIDERS = MUAPI_MODELS.map((m) => ({
   note: m.note,
 }));
 
+export const CODEC_LOCAL = [
+  { id: "wan-codec", label: "Wan Fun InP 1.3B + codec — local pack · Apache 2.0", kind: "codec-local", maxSec: 5, serverId: "", serverFamily: "wan", bridge: "wan-bridge.js", pack: "wan-local" },
+  { id: "ltx-codec", label: "LTX Video 2B + codec — local pack · OpenRail-M", kind: "codec-local", maxSec: 5, serverId: "ltx", serverFamily: "ltx", bridge: "ltx-bridge.js", pack: "ltx-local" },
+  { id: "hunyuan-codec", label: "HunyuanVideo I2V 13B + codec — local pack · Tencent community", kind: "codec-local", maxSec: 5, serverId: "hunyuan_i2v", serverFamily: "hunyuan", bridge: "hunyuan-bridge.js", pack: "hunyuan-local" },
+];
+
 /** Every provider that needs a paid account behind it. */
 export const PAID_PROVIDERS = [...KEY_PROVIDERS, ...MUAPI_PROVIDERS];
 
-export const ALL_PROVIDERS = [...PROVIDERS, ...KEY_PROVIDERS, ...MUAPI_PROVIDERS];
+export const ALL_PROVIDERS = [...PROVIDERS, ...KEY_PROVIDERS, ...MUAPI_PROVIDERS, ...CODEC_LOCAL];
 
 /**
  * The on-device renderer. Needs no network, no GPU and no model download: it estimates a

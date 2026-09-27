@@ -2019,9 +2019,38 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div>
             <span style="font-weight:700;font-size:14px;color:var(--text)">🧬 AI Model &amp; Neural Codec Lab</span>
-            <span style="font-size:11px;color:var(--muted);display:block">Local CPU Training · img2img · Inpainting · Ankan-Soma Video</span>
+            <span style="font-size:11px;color:var(--muted);display:block">Local CPU Training · Custom Models · img2img · Inpainting · Ankan-Soma Video</span>
           </div>
           <span class="aml-badge purple">Alpha v2</span>
+        </div>
+
+        <!-- Model Name, Renaming & Checkpoint Registry -->
+        <div class="aml-box" style="border-color:rgba(56,189,248,0.3)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:11.5px;font-weight:700;color:#38bdf8">🏷️ Active Model Identity</span>
+            <span class="aml-badge blue" id="amlActiveModelBadge">Active: Ankan-CyberFlow-v1</span>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="amlModelNameInput" class="form-control" value="Ankan-CyberFlow-v1" placeholder="Enter model name..." style="flex:1;font-weight:600">
+            <button type="button" id="amlRenameModelBtn" class="btn btn-small" title="Rename model">✏️ Rename</button>
+            <button type="button" id="amlSaveModelBtn" class="btn btn-small btn-primary" title="Save model checkpoint">💾 Save</button>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px">
+            <span style="color:var(--muted);white-space:nowrap">Saved Checkpoints:</span>
+            <select id="amlSavedModelsSelect" class="form-control" style="font-size:11px;padding:3px 6px;flex:1">
+              <option value="default">Ankan-CyberFlow-v1 (Built-in)</option>
+            </select>
+            <button type="button" id="amlLoadModelBtn" class="btn btn-tiny" title="Load selected checkpoint">Load</button>
+            <button type="button" id="amlDeleteModelBtn" class="btn btn-tiny" title="Delete selected checkpoint">🗑️</button>
+          </div>
+
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" id="amlExportModelBtn" class="btn btn-small" style="flex:1" title="Download .ankan-model JSON weights">📥 Export .ankan-model</button>
+            <button type="button" id="amlExportBundleBtn" class="btn btn-small" style="flex:1" title="Export Model Bundle with config and datasets">📦 Export Bundle</button>
+            <button type="button" id="amlCopyModelJsonBtn" class="btn btn-small" title="Copy model configuration JSON">📋 Copy JSON</button>
+          </div>
         </div>
 
         <!-- 4 Operation Modes Switcher -->
@@ -2075,6 +2104,20 @@
             </div>
           </div>
 
+          <!-- Video Tuning Controls (Video Mode) -->
+          <div id="amlVideoControls" style="display:flex;flex-direction:column;gap:6px" hidden>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px">
+              <span>Flow Velocity:</span>
+              <input type="range" class="ls-range" id="amlFlowVelRange" min="20" max="250" value="120" style="max-width:130px">
+              <span class="mono tiny" id="amlFlowVelVal">1.2x</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px">
+              <span>Camera Parallax:</span>
+              <input type="range" class="ls-range" id="amlParallaxRange" min="0" max="100" value="30" style="max-width:130px">
+              <span class="mono tiny" id="amlParallaxVal">30%</span>
+            </div>
+          </div>
+
           <!-- Strength slider for img2img -->
           <div id="amlStrengthRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
             <span style="font-size:11.5px;font-weight:600">Guidance Denoise:</span>
@@ -2090,15 +2133,74 @@
           </div>
         </div>
 
-        <!-- Inbuilt Model Training with "Really Think" Reasoning Loop -->
+        <!-- Inbuilt Model Training with Customizable Hyperparameters & Reasoning -->
         <div class="aml-box">
           <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:12px;font-weight:700;color:#38bdf8">🧠 Inbuilt Model Training (Local CPU)</span>
-            <span class="aml-badge blue">Low-CPU</span>
+            <span style="font-size:12px;font-weight:700;color:#38bdf8">🧠 Local CPU Model Training</span>
+            <span class="aml-badge green">Under 5% CPU</span>
           </div>
           <span style="font-size:11px;color:var(--muted)">Train custom style LoRAs, motion kernels, and character adapters locally using prompt reasoning.</span>
 
-          <input type="text" id="amlTrainConceptInput" class="form-control" value="Cyberpunk Hologram Style LoRA" placeholder="Training concept name / style...">
+          <!-- Training Architecture & Hyperparameter Customization -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <label style="font-size:10px;font-weight:600;color:var(--muted)">Architecture Backbone</label>
+              <select id="amlArchSelect" class="form-control" style="font-size:11px;padding:3px 6px">
+                <option value="ankan-flow" selected>Ankan-Soma Flow (Low-CPU)</option>
+                <option value="lora-adapter">LoRA Rank Adapter (SDXL/Wan2GP)</option>
+                <option value="spectral-centroid">16-Centroid Tone Matrix</option>
+                <option value="depth-split">2.5D Depth Split (Fg/Bg)</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <label style="font-size:10px;font-weight:600;color:var(--muted)">Target Task</label>
+              <select id="amlTargetTaskSelect" class="form-control" style="font-size:11px;padding:3px 6px">
+                <option value="multitask" selected>All-in-One (Gen+Edit+Video)</option>
+                <option value="img2img">Image-to-Image Focus</option>
+                <option value="style">Style Transfer Focus</option>
+                <option value="inpaint">Mask Inpainting Focus</option>
+                <option value="video">Image-to-Video Focus</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+                <span>Epochs:</span><span id="amlEpochsVal">5</span>
+              </div>
+              <input type="range" class="ls-range" id="amlEpochsRange" min="1" max="20" value="5">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <label style="font-size:10px;color:var(--muted)">Learning Rate</label>
+              <select id="amlLrSelect" class="form-control" style="font-size:10px;padding:2px 4px">
+                <option value="0.001">1e-3 (Fast)</option>
+                <option value="0.0005" selected>5e-4 (Balanced)</option>
+                <option value="0.0001">1e-4 (Fine)</option>
+                <option value="0.00005">5e-5 (Precision)</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <label style="font-size:10px;color:var(--muted)">LoRA Rank</label>
+              <select id="amlLoraRankSelect" class="form-control" style="font-size:10px;padding:2px 4px">
+                <option value="4">Rank 4 (Lite)</option>
+                <option value="8" selected>Rank 8 (Standard)</option>
+                <option value="16">Rank 16 (Quality)</option>
+                <option value="32">Rank 32 (Max)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Attached Datasets List -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:3px">
+              <span>Attached Training Datasets:</span>
+              <span id="amlDatasetCountBadge">1 item</span>
+            </div>
+            <div id="amlDatasetList" style="max-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:6px;padding:4px">
+              <div style="font-size:10.5px;color:var(--muted);padding:2px 4px">Default Synthetic Anchor (1280x720)</div>
+            </div>
+          </div>
 
           <!-- Live Reasoning Trace ("Really Think") -->
           <div class="aml-thinking-box">
@@ -2120,12 +2222,12 @@
               <span class="val green" id="amlTrainLossVal">0.840</span>
             </div>
             <div class="aml-stat-col">
-              <span class="lbl">Datasets</span>
-              <span class="val purple" id="amlStatDatasets">1 attached</span>
+              <span class="lbl">Rank / Dim</span>
+              <span class="val purple" id="amlStatRank">r=8</span>
             </div>
             <div class="aml-stat-col">
               <span class="lbl">LR Rate</span>
-              <span class="val">5e-4</span>
+              <span class="val" id="amlStatLr">5e-4</span>
             </div>
           </div>
 
@@ -2140,10 +2242,10 @@
         <div class="aml-box">
           <span style="font-size:12px;font-weight:700">💾 Save Asset to In-App Library Category:</span>
           <div class="aml-category-pills">
-            <button type="button" class="aml-cat-btn active" data-cat="training-datasets">📁 Training Datasets / Files</button>
+            <button type="button" class="aml-cat-btn active" data-cat="training-files">📁 Training Files / Datasets</button>
             <button type="button" class="aml-cat-btn" data-cat="training-outcomes">🏆 Training Outcomes / Models</button>
-            <button type="button" class="aml-cat-btn" data-cat="generated-images">🖼️ Generated Images / Edits</button>
-            <button type="button" class="aml-cat-btn" data-cat="generated-videos">🎥 Generated Videos (.ankan / .soma)</button>
+            <button type="button" class="aml-cat-btn" data-cat="image">🖼️ Generated Images / Edits</button>
+            <button type="button" class="aml-cat-btn" data-cat="video">🎥 Generated Videos (.ankan / .soma)</button>
           </div>
         </div>
       </section>
