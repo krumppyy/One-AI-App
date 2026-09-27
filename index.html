@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Multimedia Toolkit V4</title>
-  <meta name="description" content="Six studios in one app: AI Chat, AI Video Studio, AI Image Studio, Text Reader, Storyboard, and AI Voiceover Studio.">
-  <meta property="og:title" content="AI Multimedia Toolkit V4">
-  <meta property="og:description" content="Six studios in one app: AI Chat, AI Video Studio, AI Image Studio, Text Reader, Storyboard, and AI Voiceover Studio.">
+  <title>One AI Studio</title>
+  <meta name="description" content="One AI Studio: All-in-One AI Studio with Chat, Image, Video, Storyboard, Voiceover, 24/7 Livestream & Video Editor.">
+  <meta property="og:title" content="One AI Studio">
+  <meta property="og:description" content="One AI Studio: All-in-One AI Studio with Chat, Image, Video, Storyboard, Voiceover, 24/7 Livestream & Video Editor.">
   <link rel="stylesheet" href="src/styles.css">
   <link rel="stylesheet" href="src/editor.css">
   <link rel="stylesheet" href="src/chat.css">
   <link rel="stylesheet" href="src/guide.css">
   <link rel="stylesheet" href="src/storyboard.css">
+  <link rel="stylesheet" href="src/livestream.css">
   <script src="src/perchance-shim.js"></script>
 </head>
 <body>
@@ -30,8 +31,8 @@
         </svg>
       </div>
       <div class="brand-text">
-        <h1>AI Multimedia Toolkit <span class="ver">V4</span></h1>
-        <p class="tagline">chat · image · video · reader · storyboard · voiceover · editor beta testing</p>
+        <h1>One AI Studio <span class="ver">Pro</span></h1>
+        <p class="tagline">chat · image · video · reader · storyboard · voiceover · livestream · editor</p>
       </div>
     </div>
     <div class="topbar-actions">
@@ -65,6 +66,7 @@
     <button id="tabReaderBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageReader">Reader</button>
     <button id="tabStoryboardBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageStoryboard" title="Unlimited storyboard images, compile to video">Storyboard</button>
     <button id="tabVoiceBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageVoice">Voiceover</button>
+    <button id="tabLivestreamBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageLivestream" title="24/7 Livestream, playlist broadcast, in-camera beautification, chroma key & OBS screen share">📡 Livestream</button>
     <button id="tabEditorBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageEditor" title="Early beta — expect rough edges">Editor <span class="ver">beta testing</span></button>
     </span>
   </nav>
@@ -1151,6 +1153,368 @@
         <div id="pvLog" class="logbox mono">Ready.</div>
       </details>
     </section>
+    </div>
+  </main>
+
+  <main class="layout page page-livestream" id="pageLivestream" hidden>
+    <div class="ls-layout">
+      <!-- Left Panel: Control Deck -->
+      <section class="ls-panel">
+        <div class="ls-section-title">
+          <span>📡 Live Studio Sources</span>
+          <span class="badge live" id="lsActiveModeBadge">Camera Mode</span>
+        </div>
+
+        <!-- Master Source Switcher -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button type="button" class="btn btn-small ls-source-btn on" data-source="camera">📷 In-Camera</button>
+          <button type="button" class="btn btn-small ls-source-btn" data-source="screen">💻 Screen Share (OBS)</button>
+          <button type="button" class="btn btn-small ls-source-btn" data-source="playlist">📋 24/7 Looping Playlist</button>
+          <button type="button" class="btn btn-small ls-source-btn" data-source="hybrid">✨ Hybrid Composite</button>
+        </div>
+
+        <!-- Subtabs -->
+        <nav class="ls-subnav">
+          <button type="button" class="ls-subtab on" data-target="lsTabCam">📷 Camera</button>
+          <button type="button" class="ls-subtab" data-target="lsTabBeauty">✨ Beautify</button>
+          <button type="button" class="ls-subtab" data-target="lsTabColor">🎨 Color LUT</button>
+          <button type="button" class="ls-subtab" data-target="lsTabChroma">🟩 Chroma Key</button>
+          <button type="button" class="ls-subtab" data-target="lsTabPlaylist">📋 Playlist</button>
+          <button type="button" class="ls-subtab" data-target="lsTabAudio">🎚️ Audio</button>
+        </nav>
+
+        <!-- 1. Camera & Hardware Focus Tab -->
+        <div id="lsTabCam" class="ls-tab-pane">
+          <div class="ls-tune-group">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="lsCamSelect" class="form-control" style="flex:1">
+                <option value="">Default Camera</option>
+              </select>
+              <button id="lsFlipCamBtn" type="button" class="btn btn-small" title="Flip between front and rear camera">🔄 Flip</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Resolution</label>
+                <select id="lsResSelect" class="form-control" style="width:100%">
+                  <option value="1080p">1080p FHD</option>
+                  <option value="720p">720p HD</option>
+                  <option value="4k">4K UHD</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Frame Rate</label>
+                <select id="lsFpsSelect" class="form-control" style="width:100%">
+                  <option value="60">60 FPS</option>
+                  <option value="30">30 FPS</option>
+                </select>
+              </div>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer">
+              <input type="checkbox" id="lsAutoFocusToggle" checked>
+              <span>Auto-Focus (Continuous tracking & depth clarity)</span>
+            </label>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button id="lsConnectScreenBtn" type="button" class="btn btn-small btn-primary" style="flex:1">🖥️ Connect Screen Share</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Face Beautification Tab -->
+        <div id="lsTabBeauty" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer">
+                <input type="checkbox" id="lsBeautifyToggle" checked>
+                <span>In-Camera Face Beautification</span>
+              </label>
+              <button type="button" id="lsResetBeautyBtn" class="btn btn-tiny">Reset</button>
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header">
+                <span>Skin Smoothing (Blemish softening)</span>
+                <span class="ls-slider-val" id="lsSmoothVal">45%</span>
+              </div>
+              <input type="range" class="ls-range" id="lsSmoothRange" min="0" max="100" value="45">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header">
+                <span>Glow & Radiance</span>
+                <span class="ls-slider-val" id="lsGlowVal">30%</span>
+              </div>
+              <input type="range" class="ls-range" id="lsGlowRange" min="0" max="100" value="30">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header">
+                <span>Skin Warmth & Rosy Blush</span>
+                <span class="ls-slider-val" id="lsWarmthVal">20%</span>
+              </div>
+              <input type="range" class="ls-range" id="lsWarmthRange" min="0" max="100" value="20">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header">
+                <span>Eye Radiance & Teeth Whitening</span>
+                <span class="ls-slider-val" id="lsEyeVal">35%</span>
+              </div>
+              <input type="range" class="ls-range" id="lsEyeRange" min="0" max="100" value="35">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Color LUT & Tuning Tab -->
+        <div id="lsTabColor" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;font-weight:700">Cinematic Presets</span>
+              <button type="button" id="lsResetColorBtn" class="btn btn-tiny">Reset</button>
+            </div>
+            <div class="ls-presets-grid">
+              <button type="button" class="ls-preset-chip on" data-filter="natural">
+                <span class="ls-preset-color-dot" style="background:#cbd5e1"></span>
+                <span>Natural</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="teal-orange">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #0ea5e9, #f97316)"></span>
+                <span>Teal-Orange</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="golden">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #f59e0b, #d97706)"></span>
+                <span>Golden Hour</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="cyberpunk">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #a855f7, #06b6d4)"></span>
+                <span>Cyberpunk</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="noir">
+                <span class="ls-preset-color-dot" style="background:#334155"></span>
+                <span>Film Noir</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="vhs">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #ec4899, #8b5cf6)"></span>
+                <span>Retro VHS</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="pastel">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #fbcfe8, #c7d2fe)"></span>
+                <span>Pastel</span>
+              </button>
+              <button type="button" class="ls-preset-chip" data-filter="emerald">
+                <span class="ls-preset-color-dot" style="background:linear-gradient(135deg, #10b981, #047857)"></span>
+                <span>Emerald</span>
+              </button>
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Exposure</span><span class="ls-slider-val" id="lsExposureVal">0%</span></div>
+              <input type="range" class="ls-range" id="lsExposureRange" min="-50" max="50" value="0">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Contrast</span><span class="ls-slider-val" id="lsContrastVal">0%</span></div>
+              <input type="range" class="ls-range" id="lsContrastRange" min="-50" max="50" value="0">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Saturation</span><span class="ls-slider-val" id="lsSatVal">0%</span></div>
+              <input type="range" class="ls-range" id="lsSatRange" min="-100" max="100" value="0">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Color Temperature</span><span class="ls-slider-val" id="lsTempVal">0%</span></div>
+              <input type="range" class="ls-range" id="lsTempRange" min="-50" max="50" value="0">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Vignette</span><span class="ls-slider-val" id="lsVignetteVal">15%</span></div>
+              <input type="range" class="ls-range" id="lsVignetteRange" min="0" max="100" value="15">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Film Grain</span><span class="ls-slider-val" id="lsGrainVal">0%</span></div>
+              <input type="range" class="ls-range" id="lsGrainRange" min="0" max="100" value="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. OBS Chroma Key & Background Replacement Tab -->
+        <div id="lsTabChroma" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer">
+              <input type="checkbox" id="lsChromaToggle">
+              <span>Enable OBS Chroma Key (Screen Replacement)</span>
+            </label>
+            <div>
+              <span style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px">Keying Color</span>
+              <div class="ls-chroma-colors">
+                <button type="button" class="ls-chroma-btn on" data-color="green"><span class="ls-color-preview" style="background:#00ff00"></span> Green</button>
+                <button type="button" class="ls-chroma-btn" data-color="blue"><span class="ls-color-preview" style="background:#0088ff"></span> Blue</button>
+                <button type="button" class="ls-chroma-btn" data-color="red"><span class="ls-color-preview" style="background:#ff2222"></span> Red</button>
+                <button type="button" class="ls-chroma-btn" data-color="white"><span class="ls-color-preview" style="background:#ffffff"></span> White</button>
+                <button type="button" class="ls-chroma-btn" data-color="black"><span class="ls-color-preview" style="background:#000000"></span> Black</button>
+                <input type="color" id="lsCustomColorInput" value="#00ff00" style="width:28px;height:28px;padding:0;border:none;cursor:pointer;border-radius:6px" title="Custom color picker">
+              </div>
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Similarity Threshold</span><span class="ls-slider-val" id="lsChromaThreshVal">45%</span></div>
+              <input type="range" class="ls-range" id="lsChromaThreshRange" min="10" max="90" value="45">
+            </div>
+            <div class="ls-slider-row">
+              <div class="ls-slider-header"><span>Smoothness / Edge Feather</span><span class="ls-slider-val" id="lsChromaSmoothVal">20%</span></div>
+              <input type="range" class="ls-range" id="lsChromaSmoothRange" min="0" max="60" value="20">
+            </div>
+            <div style="border-top:1px solid var(--line);padding-top:10px">
+              <span style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Replacement Background</span>
+              <select id="lsBgTypeSelect" class="form-control" style="width:100%;margin-bottom:8px">
+                <option value="gradient">Studio Ambient Gradient</option>
+                <option value="image">Custom Uploaded Image</option>
+                <option value="video">Custom Uploaded Video</option>
+                <option value="screen">Live Screen Share as Background</option>
+              </select>
+              <div id="lsBgGradRow">
+                <select id="lsBgGradSelect" class="form-control" style="width:100%">
+                  <option value="cosmic">Cosmic Violet</option>
+                  <option value="emerald">Cyber Emerald</option>
+                  <option value="sunset">Sunset Gold</option>
+                  <option value="slate">Nordic Slate</option>
+                </select>
+              </div>
+              <div id="lsBgUploadRow" hidden style="display:flex;gap:6px;align-items:center;margin-top:6px">
+                <input type="file" id="lsBgFileInput" accept="image/*,video/*" style="display:none">
+                <button type="button" class="btn btn-small" onclick="document.getElementById('lsBgFileInput').click()">📁 Upload Background</button>
+                <button type="button" id="lsBgLibPickBtn" class="btn btn-small">📚 Library Media</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 24/7 Looping Playlist Tab -->
+        <div id="lsTabPlaylist" class="ls-tab-pane" hidden>
+          <div class="ls-playlist-card">
+            <div class="ls-playlist-header">
+              <span style="font-size:12px;font-weight:700">Playlist Queue</span>
+              <span class="badge" id="lsPlaylistCount">1 item</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <input type="file" id="lsMediaFileInput" multiple accept="video/*,image/*" style="display:none">
+              <button type="button" id="lsAddMediaBtn" class="btn btn-small btn-primary">+ Upload Media</button>
+              <button type="button" id="lsImportLibBtn" class="btn btn-small">📚 In-App Library</button>
+              <button type="button" id="lsAddStreamBtn" class="btn btn-small">🌐 Social / Stream URL</button>
+              <button type="button" id="lsClearPlaylistBtn" class="btn btn-tiny">Clear</button>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);cursor:pointer">
+                <input type="checkbox" id="lsLoop247Toggle" checked>
+                <span>24/7/365 Looping</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);cursor:pointer">
+                <input type="checkbox" id="lsShuffleToggle">
+                <span>Shuffle</span>
+              </label>
+            </div>
+            <div id="lsPlaylistContainer" class="ls-playlist-items"></div>
+          </div>
+        </div>
+
+        <!-- 6. Audio Mixer & Lower Third Tab -->
+        <div id="lsTabAudio" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <span style="font-size:12px;font-weight:700">Live Audio Channels</span>
+            <div class="ls-audio-mixer">
+              <div class="ls-audio-channel">
+                <div class="ls-audio-label">
+                  <span>Microphone</span>
+                  <button type="button" id="lsMicMuteBtn" class="btn btn-tiny">Mute</button>
+                </div>
+                <input type="range" class="ls-range" id="lsMicVolume" min="0" max="100" value="85">
+                <div class="ls-meter-bar"><div class="ls-meter-fill" id="lsMicMeter"></div></div>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:6px">
+              <span style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">On-Screen Lower Third</span>
+              <input type="text" id="lsLowerThirdInput" class="form-control" value="One AI Studio 24/7 Live Broadcast" placeholder="Headline / Name" style="margin-bottom:6px">
+              <input type="text" id="lsLowerThirdSubInput" class="form-control" value="Multi-Source · OBS Virtual Engine · Beautification On" placeholder="Subtitle / Role">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Master Stage Screen & Actions -->
+      <section class="ls-panel">
+        <div class="ls-stage-card">
+          <div class="ls-monitor-wrap" id="lsMonitorWrap">
+            <canvas id="lsCompositorCanvas"></canvas>
+            <div class="ls-screen-overlays">
+              <div class="ls-overlay-top">
+                <div class="ls-status-tag" id="lsLiveStatusTag"><span class="dot"></span> STANDBY</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div class="ls-time-counter">⏱ <span id="lsLiveTimeVal">00:00:00</span></div>
+                  <div class="ls-res-counter" id="lsResVal">1080P @ 60FPS</div>
+                </div>
+              </div>
+              <div class="ls-overlay-bottom">
+                <div class="ls-lower-third">
+                  <div class="ls-lt-title">One AI Studio Live</div>
+                  <div class="ls-lt-subtitle">Continuous 24/7 Streaming Ready</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Master Control Action Bar -->
+          <div class="ls-action-bar">
+            <div class="ls-primary-actions">
+              <button type="button" id="lsToggleLiveBtn" class="btn btn-primary" style="font-weight:700">🔴 Start 24/7 Livestream</button>
+              <button type="button" id="lsRecordBtn" class="btn">⏺ Record</button>
+              <button type="button" id="lsSnapshotBtn" class="btn">📷 Snap HD Photo</button>
+            </div>
+            <div class="ls-secondary-actions">
+              <button type="button" id="lsBrowserPipBtn" class="btn btn-small" title="Open floating Picture-in-Picture window">📺 Floating PiP</button>
+              <button type="button" id="lsFullscreenBtn" class="btn btn-small" title="Fullscreen stage">⛶ Fullscreen</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PiP Corner & Layout Quick Bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;cursor:pointer">
+              <input type="checkbox" id="lsPipToggle" checked>
+              <span>PiP Overlay Window</span>
+            </label>
+            <select id="lsPipPosSelect" class="form-control" style="font-size:11px">
+              <option value="br">Bottom Right</option>
+              <option value="bl">Bottom Left</option>
+              <option value="tr">Top Right</option>
+              <option value="tl">Top Left</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--muted)">PiP Size:</span>
+            <input type="range" class="ls-range" id="lsPipScaleRange" min="15" max="50" value="28" style="width:100px">
+            <span class="mono tiny" id="lsPipScaleVal">28%</span>
+          </div>
+        </div>
+
+        <!-- Social Media & Broadcast Stream Target Helper -->
+        <details class="fold">
+          <summary>📡 Broadcast Platform Stream Settings (YouTube, Twitch, Facebook, RTMP)</summary>
+          <div class="ls-rtmp-box" style="margin-top:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Platform</label>
+                <select id="lsPlatformSelect" class="form-control" style="width:100%">
+                  <option value="youtube">YouTube Live (24/7 Continuous)</option>
+                  <option value="twitch">Twitch Stream</option>
+                  <option value="facebook">Facebook Live</option>
+                  <option value="restream">Restream.io (Multi-broadcast)</option>
+                  <option value="kick">Kick.com</option>
+                  <option value="custom">Custom RTMP / Webhook</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Stream Key (Stored locally only)</label>
+                <input type="password" id="lsStreamKeyInput" class="form-control" placeholder="live_xxxx_yyyy" style="width:100%">
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+              <span class="mono tiny" style="color:var(--muted)">OBS Virtual Cam & WebRTC canvas ready. Direct capture stream running at 60 FPS.</span>
+              <button type="button" class="btn btn-tiny" onclick="window.toast ? window.toast('Stream settings saved locally.') : alert('Saved.')">Save Key</button>
+            </div>
+          </div>
+        </details>
+      </section>
     </div>
   </main>
 
@@ -2433,6 +2797,7 @@ function reply(text, status, cors) {
 <script type="module" src="src/dictate.js"></script>
 <script type="module" src="src/photo-voice.js"></script>
 <script type="module" src="src/voice-import.js"></script>
+<script type="module" src="src/livestream.js"></script>
 <script type="module" src="src/editor.js"></script>
 <script type="module" src="src/editor-agent.js"></script>
 <script type="module" src="src/guide.js"></script>

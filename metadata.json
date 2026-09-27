@@ -1,6 +1,6 @@
 {
-  "name": "AI Multimedia Toolkit V4",
-  "description": "Six studios in one app: AI Chat, AI Video Studio, AI Image Studio, Text Reader, Storyboard, and AI Voiceover Studio.",
+  "name": "One AI Studio",
+  "description": "All-in-one AI creation and 24/7 livestream studio: AI chat, image, video, storyboard, voiceover, OBS-grade livestream, and timeline editor.",
   "permissions": [],
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
