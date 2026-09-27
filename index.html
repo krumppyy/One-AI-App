@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="src/storyboard.css">
   <link rel="stylesheet" href="src/livestream.css">
   <link rel="stylesheet" href="src/codec-lab.css">
+  <link rel="stylesheet" href="src/ai-model-lab.css">
   <script src="src/perchance-shim.js"></script>
 </head>
 <body>
@@ -70,6 +71,7 @@
     <button id="tabLivestreamBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageLivestream" title="24/7 Livestream, playlist broadcast, in-camera beautification, chroma key & OBS screen share">📡 Livestream</button>
     <button id="tabEditorBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageEditor" title="Early beta — expect rough edges">Editor <span class="ver">beta testing</span></button>
     <button id="tabCodecLabBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageCodecLab" title="Low-CPU AI Neural Vector & Particle Video Codec Lab">🧪 Codec Lab <span class="ver">AI Alpha</span></button>
+    <button id="tabAIModelLabBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageAIModelLab" title="Train custom AI models, img2img, inpaint, style edit & Ankan-Soma video codec">🧬 AI Model Lab <span class="ver">AI Train</span></button>
     </span>
   </nav>
 
@@ -2010,6 +2012,178 @@
     </div>
   </main>
 
+  <main class="layout page page-aimodellab" id="pageAIModelLab" hidden>
+    <div class="aml-layout">
+      <!-- Left Panel: Operations & Model Training -->
+      <section class="aml-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div>
+            <span style="font-weight:700;font-size:14px;color:var(--text)">🧬 AI Model &amp; Neural Codec Lab</span>
+            <span style="font-size:11px;color:var(--muted);display:block">Local CPU Training · img2img · Inpainting · Ankan-Soma Video</span>
+          </div>
+          <span class="aml-badge purple">Alpha v2</span>
+        </div>
+
+        <!-- 4 Operation Modes Switcher -->
+        <div class="aml-mode-bar">
+          <button type="button" class="aml-mode-btn active" data-mode="img2img">
+            <span>✨ img2img</span>
+            <span style="font-size:9.5px;font-weight:500">Generate</span>
+          </button>
+          <button type="button" class="aml-mode-btn" data-mode="edit">
+            <span>🎨 Style Edit</span>
+            <span style="font-size:9.5px;font-weight:500">Transform</span>
+          </button>
+          <button type="button" class="aml-mode-btn" data-mode="inpaint">
+            <span>🖌️ Inpainting</span>
+            <span style="font-size:9.5px;font-weight:500">Brush Mask</span>
+          </button>
+          <button type="button" class="aml-mode-btn" data-mode="video">
+            <span>🎬 Video Gen</span>
+            <span style="font-size:9.5px;font-weight:500">Ankan-Soma</span>
+          </button>
+        </div>
+
+        <!-- Source Prompt & Model Controls Box -->
+        <div class="aml-box">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <label style="font-size:11.5px;font-weight:600;color:var(--text)">Prompt &amp; Synthesis Goal</label>
+            <span class="mono tiny" style="color:var(--muted)">Local Neural Engine</span>
+          </div>
+          <input type="text" id="amlPromptInput" class="form-control" value="Futuristic android portrait with glowing chromatic ocular implants" placeholder="Enter prompt for generation, edit or inpainting...">
+
+          <!-- Style Select (Edit Mode) -->
+          <div id="amlEditControls" style="display:flex;align-items:center;justify-content:space-between;gap:8px" hidden>
+            <span style="font-size:11.5px;font-weight:600">Style Preset:</span>
+            <select id="amlStyleSelect" class="form-control" style="font-size:11px;padding:3px 6px">
+              <option value="cyberpunk">Cyberpunk Neon</option>
+              <option value="anime">Anime / Manga Cell</option>
+              <option value="noir">Cinematic 35mm Noir</option>
+              <option value="sunset">Golden Hour Vintage</option>
+            </select>
+          </div>
+
+          <!-- Inpainting Brush Controls (Inpaint Mode) -->
+          <div id="amlInpaintControls" class="aml-inpaint-bar" hidden>
+            <span style="font-size:11px;font-weight:700;color:#c084fc">Inpaint Mask:</span>
+            <button type="button" id="amlBrushModeBtn" class="btn btn-tiny">✏️ Brush</button>
+            <button type="button" id="amlClearMaskBtn" class="btn btn-tiny">🧹 Clear Mask</button>
+            <div style="display:flex;align-items:center;gap:6px;flex:1">
+              <span style="font-size:10px;color:var(--muted)">Size:</span>
+              <input type="range" class="ls-range" id="amlBrushSizeRange" min="8" max="90" value="32">
+              <span class="mono tiny" id="amlBrushSizeVal">32px</span>
+            </div>
+          </div>
+
+          <!-- Strength slider for img2img -->
+          <div id="amlStrengthRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="font-size:11.5px;font-weight:600">Guidance Denoise:</span>
+            <input type="range" class="ls-range" id="amlStrengthRange" min="10" max="100" value="70" style="max-width:140px">
+            <span class="mono tiny" style="color:#38bdf8">70%</span>
+          </div>
+
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" id="amlActionBtn" class="btn btn-primary btn-small" style="flex:1">✨ Generate Image-to-Image</button>
+            <input type="file" id="amlFileInput" accept="image/*,video/*,.ankan,.soma,.json" multiple style="display:none">
+            <button type="button" id="amlUploadBtn" class="btn btn-small">📁 Import Files</button>
+            <button type="button" id="amlLibBtn" class="btn btn-small">📚 Library</button>
+          </div>
+        </div>
+
+        <!-- Inbuilt Model Training with "Really Think" Reasoning Loop -->
+        <div class="aml-box">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;font-weight:700;color:#38bdf8">🧠 Inbuilt Model Training (Local CPU)</span>
+            <span class="aml-badge blue">Low-CPU</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)">Train custom style LoRAs, motion kernels, and character adapters locally using prompt reasoning.</span>
+
+          <input type="text" id="amlTrainConceptInput" class="form-control" value="Cyberpunk Hologram Style LoRA" placeholder="Training concept name / style...">
+
+          <!-- Live Reasoning Trace ("Really Think") -->
+          <div class="aml-thinking-box">
+            <div class="aml-think-header">
+              <span>💭 Reasoning &amp; Cognitive Thought Trace</span>
+              <span style="font-size:9.5px;color:#94a3b8">Chain-of-Thought Loop</span>
+            </div>
+            <div class="aml-think-content" id="amlThinkContent">[Standby] Ready to initiate training reasoning loop. Attach datasets or files above and click Start Training.</div>
+          </div>
+
+          <!-- Training Telemetry HUD -->
+          <div class="aml-train-stats">
+            <div class="aml-stat-col">
+              <span class="lbl">Epoch</span>
+              <span class="val blue" id="amlTrainEpochVal">0 / 5</span>
+            </div>
+            <div class="aml-stat-col">
+              <span class="lbl">Loss</span>
+              <span class="val green" id="amlTrainLossVal">0.840</span>
+            </div>
+            <div class="aml-stat-col">
+              <span class="lbl">Datasets</span>
+              <span class="val purple" id="amlStatDatasets">1 attached</span>
+            </div>
+            <div class="aml-stat-col">
+              <span class="lbl">LR Rate</span>
+              <span class="val">5e-4</span>
+            </div>
+          </div>
+
+          <div class="aml-progress-track">
+            <div class="aml-progress-fill" id="amlTrainProgressFill"></div>
+          </div>
+
+          <button type="button" id="amlStartTrainBtn" class="btn btn-primary btn-small">🚀 Start Model Training on CPU</button>
+        </div>
+
+        <!-- In-App Library Lifecycles with Separate Categories -->
+        <div class="aml-box">
+          <span style="font-size:12px;font-weight:700">💾 Save Asset to In-App Library Category:</span>
+          <div class="aml-category-pills">
+            <button type="button" class="aml-cat-btn active" data-cat="training-datasets">📁 Training Datasets / Files</button>
+            <button type="button" class="aml-cat-btn" data-cat="training-outcomes">🏆 Training Outcomes / Models</button>
+            <button type="button" class="aml-cat-btn" data-cat="generated-images">🖼️ Generated Images / Edits</button>
+            <button type="button" class="aml-cat-btn" data-cat="generated-videos">🎥 Generated Videos (.ankan / .soma)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Realtime Player View & Log Engine -->
+      <section class="aml-panel">
+        <div class="aml-stage">
+          <div class="aml-canvas-holder">
+            <canvas id="amlCanvas"></canvas>
+            <canvas id="amlMaskCanvas"></canvas>
+          </div>
+
+          <!-- Player Transport Controls -->
+          <div class="codec-transport" style="background:#090d19;border-top:1px solid var(--line);padding:8px 12px;display:flex;align-items:center;gap:8px">
+            <button type="button" id="amlPlayBtn" class="btn btn-tiny">⏸</button>
+            <input type="range" class="codec-scrubber" id="amlScrubber" min="0" max="6" step="0.05" value="0" style="flex:1">
+            <span class="mono tiny" id="amlTimeLbl" style="color:var(--muted);white-space:nowrap">0.0s / 6.0s</span>
+            <span class="codec-hud-tag" id="amlStatBitrate" style="font-size:10px;padding:2px 5px">18.4 KB/s</span>
+            <span class="codec-hud-tag" id="amlStatClusters" style="font-size:10px;padding:2px 5px">16 colors</span>
+          </div>
+        </div>
+
+        <!-- Live Terminal / Log Engine -->
+        <div class="aml-log-box">
+          <div class="aml-log-header">
+            <div class="aml-log-filters">
+              <span style="font-size:11px;font-weight:700;color:var(--text);margin-right:6px">Terminal Logs:</span>
+              <button type="button" class="aml-log-chip on" data-filter="all">All</button>
+              <button type="button" class="aml-log-chip" data-filter="think">Reasoning</button>
+              <button type="button" class="aml-log-chip" data-filter="train">Training</button>
+              <button type="button" class="aml-log-chip" data-filter="codec">Codec</button>
+            </div>
+            <button type="button" id="amlClearLogBtn" class="btn btn-tiny" style="font-size:9.5px;padding:2px 5px">Clear</button>
+          </div>
+          <div class="aml-log-content" id="amlLogContent"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <main class="layout page" id="pageFeedback" hidden>
     <section class="panel studio">
       <div class="panel-head">
@@ -2991,6 +3165,7 @@ function reply(text, status, cors) {
 <script type="module" src="src/voice-import.js"></script>
 <script type="module" src="src/livestream.js"></script>
 <script type="module" src="src/codec-lab.js"></script>
+<script type="module" src="src/ai-model-lab.js"></script>
 <script type="module" src="src/editor.js"></script>
 <script type="module" src="src/editor-agent.js"></script>
 <script type="module" src="src/guide.js"></script>

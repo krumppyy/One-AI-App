@@ -1,0 +1,349 @@
+/* One AI Studio - AI Model Lab & Neural Studio CSS */
+
+#pageAIModelLab {
+  display: block;
+  width: 100%;
+}
+#pageAIModelLab[hidden] {
+  display: none !important;
+}
+
+.aml-layout {
+  display: grid;
+  grid-template-columns: minmax(380px, 460px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .aml-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aml-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Mode Switcher Tabs */
+.aml-mode-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 3px;
+}
+.aml-mode-btn {
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.16s ease;
+  text-align: center;
+}
+.aml-mode-btn:hover {
+  color: var(--text);
+}
+.aml-mode-btn.active {
+  background: var(--panel);
+  color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Sub-panels */
+.aml-box {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aml-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.aml-badge.purple {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+}
+.aml-badge.blue {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+.aml-badge.green {
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+/* Inpainting Brush Bar */
+.aml-inpaint-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+/* AI Reasoning Trace Display */
+.aml-thinking-box {
+  background: #080c18;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aml-think-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.aml-think-content {
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #94a3b8;
+  max-height: 110px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 2px solid #38bdf8;
+}
+
+/* Training Epochs & Loss HUD */
+.aml-train-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: #040711;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.aml-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.aml-stat-col .lbl {
+  font-size: 9.5px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.aml-stat-col .val {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+.aml-stat-col .val.green { color: #34d399; }
+.aml-stat-col .val.blue { color: #38bdf8; }
+.aml-stat-col .val.purple { color: #c084fc; }
+
+/* Progress bar */
+.aml-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+.aml-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  transition: width 0.2s ease;
+}
+
+/* Stage Canvas & Player */
+.aml-stage {
+  background: #000;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+.aml-canvas-holder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #02040a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#amlCanvas, #amlMaskCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+#amlMaskCanvas {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* Terminal & Log Engine */
+.aml-log-box {
+  background: #02050e;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 220px;
+}
+.aml-log-header {
+  background: #070c1a;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.aml-log-filters {
+  display: flex;
+  gap: 4px;
+}
+.aml-log-chip {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.aml-log-chip.on {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--line-2);
+}
+.aml-log-content {
+  padding: 8px 10px;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #94a3b8;
+  overflow-y: auto;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.aml-log-item {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.aml-log-time {
+  color: #475569;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.aml-log-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.aml-log-tag.think { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+.aml-log-tag.train { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.aml-log-tag.codec { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+.aml-log-tag.pass  { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.aml-log-tag.fail  { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+/* Category Pills for Library */
+.aml-category-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.aml-cat-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.aml-cat-btn:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+}
+.aml-cat-btn.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* Light Theme support */
+html[data-mode="white"] .aml-panel {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+html[data-mode="white"] .aml-box,
+html[data-mode="white"] .aml-thinking-box,
+html[data-mode="white"] .aml-inpaint-bar {
+  background: #f4f4f5;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html[data-mode="white"] .aml-think-content,
+html[data-mode="white"] .aml-log-box {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #334155;
+}
+html[data-mode="white"] .aml-train-stats {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.08);
+}
