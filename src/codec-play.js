@@ -70,26 +70,6 @@ export function slotAt(keys, t, loop, transition = 0.8) {
   return { a: keys[keys.length - 1], b: null, mix: 0 };
 }
 
-let _sprites = {};
-const spriteFor = (r, g, b) => {
-  const key = r + "," + g + "," + b;
-  let s = _sprites[key];
-  if (!s) {
-    if (Object.keys(_sprites).length > 64) _sprites = {};
-    s = document.createElement("canvas");
-    s.width = 64; s.height = 64;
-    const c = s.getContext("2d");
-    const grad = c.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
-    grad.addColorStop(0.35, `rgba(${r},${g},${b},0.45)`);
-    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-    c.fillStyle = grad;
-    c.fillRect(0, 0, 64, 64);
-    _sprites[key] = s;
-  }
-  return s;
-};
-
 const DEF_P = { flowVelocity: 1, exposurePulse: 30, cameraParallax: 25, morphTurbulence: 35, colorWarp: 15, transition: 0.8 };
 
 function drawScene(ctx, W, H, t, total, img, analysis, P, camX, zoom, expShift, gate) {
@@ -107,22 +87,6 @@ function drawScene(ctx, W, H, t, total, img, analysis, P, camX, zoom, expShift, 
   ctx.filter = `brightness(${brightness}) saturate(${satBoost})`;
   ctx.drawImage(img, 0, 0, W, H);
   ctx.filter = "none";
-  const vel = P.flowVelocity ?? 1;
-  const turb = (P.morphTurbulence ?? 35) / 100;
-  const sharp = W >= 1920 ? 0.45 : W >= 1280 ? 0.7 : 1;
-  for (let i = 0; i < pts.length; i++) {
-    const p = pts[i];
-    const cycleT = total ? (t + (p.phase || 0)) % total : 0;
-    const px = (p.originX + (p.vx * cycleT * 40 * vel) + Math.sin(cycleT * 3 + (p.phase || 0)) * (turb * 25)) * k;
-    const py = (p.originY + (p.vy * cycleT * 40 * vel) + Math.cos(cycleT * 3 + (p.phase || 0)) * (turb * 25)) * (H / 720);
-    const wrapX = ((px % W) + W) % W;
-    const wrapY = ((py % H) + H) % H;
-    const env = total ? Math.pow(Math.sin((Math.PI * cycleT) / total), 0.5) : 1;
-    ctx.globalAlpha = gate * (p.alpha || 0.2) * env * sharp;
-    if (ctx.globalAlpha < 0.004) continue;
-    const sz = (p.radius || 1.5) * 4 * k;
-    ctx.drawImage(spriteFor(p.r, p.g, p.b), wrapX - sz / 2, wrapY - sz / 2, sz, sz);
-  }
   ctx.restore();
 }
 

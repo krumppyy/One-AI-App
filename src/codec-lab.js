@@ -388,29 +388,6 @@ export function initCodecLab() {
     ctx.filter = `brightness(${brightness}) saturate(${1 + (S.colorWarp / 100) * 0.3})`;
     ctx.drawImage(S.anchorCanvas, 0, 0, w, h);
     ctx.filter = "none";
-
-    // 2. Synthesize Lagrangian Particles along the flow field
-    const vel = S.flowVelocity;
-    const turb = S.morphTurbulence / 100;
-
-    for (let i = 0; i < S.activeParticles.length; i++) {
-      const p = S.activeParticles[i];
-      // Displace particle position cyclically
-      const cycleT = (t + p.phase) % S.duration;
-      const px = p.originX + (p.vx * cycleT * 40 * vel) + Math.sin(cycleT * 3 + p.phase) * (turb * 25);
-      const py = p.originY + (p.vy * cycleT * 40 * vel) + Math.cos(cycleT * 3 + p.phase) * (turb * 25);
-
-      // Wrap boundaries
-      const wrapX = ((px % w) + w) % w;
-      const wrapY = ((py % h) + h) % h;
-
-      const alphaPulse = Math.sin(cycleT * 4 + p.phase) * 0.25 + p.alpha;
-
-      ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${Math.max(0.1, alphaPulse)})`;
-      ctx.beginPath();
-      ctx.arc(wrapX, wrapY, p.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
     ctx.restore();
   }
 

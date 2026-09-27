@@ -953,23 +953,26 @@ export function initAIModelLab() {
     const h = S.canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    // Draw Source Image Base
-    ctx.drawImage(S.sourceCanvas, 0, 0, w, h);
+    if (S.mode === "video") {
+      // Clean cinematic motion without floating particle dots
+      const progress = S.duration ? (t % S.duration) / S.duration : 0;
+      const camX = Math.sin(progress * Math.PI * 2) * (S.cameraParallax * 0.7);
+      const zoom = 1.0 + Math.sin(progress * Math.PI * 2) * ((S.cameraParallax / 100) * 0.06);
+      const expShift = Math.sin(progress * Math.PI * 4) * 0.08;
 
-    // If in video mode, render animated particles & flow vectors
-    if (S.mode === "video" && S.activeParticles.length > 0) {
-      const cycleT = t % S.duration;
-      const vel = S.flowVelocity;
-      for (let i = 0; i < S.activeParticles.length; i++) {
-        const p = S.activeParticles[i];
-        const px = ((p.originX + p.vx * cycleT * 40 * vel) % w + w) % w;
-        const py = ((p.originY + p.vy * cycleT * 40 * vel) % h + h) % h;
-
-        ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.alpha})`;
-        ctx.beginPath();
-        ctx.arc(px, py, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.translate(w / 2 + camX, h / 2);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-w / 2, -h / 2);
+      ctx.filter = `brightness(${1.0 + expShift})`;
+      ctx.drawImage(S.sourceCanvas, 0, 0, w, h);
+      ctx.filter = "none";
+      ctx.restore();
+    } else {
+      // Static image / edit mode: pristine direct draw
+      ctx.drawImage(S.sourceCanvas, 0, 0, w, h);
     }
   }
 
