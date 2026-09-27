@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="src/guide.css">
   <link rel="stylesheet" href="src/storyboard.css">
   <link rel="stylesheet" href="src/livestream.css">
+  <link rel="stylesheet" href="src/codec-lab.css">
   <script src="src/perchance-shim.js"></script>
 </head>
 <body>
@@ -68,6 +69,7 @@
     <button id="tabVoiceBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageVoice">Voiceover</button>
     <button id="tabLivestreamBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageLivestream" title="24/7 Livestream, playlist broadcast, in-camera beautification, chroma key & OBS screen share">📡 Livestream</button>
     <button id="tabEditorBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageEditor" title="Early beta — expect rough edges">Editor <span class="ver">beta testing</span></button>
+    <button id="tabCodecLabBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageCodecLab" title="Low-CPU AI Neural Vector & Particle Video Codec Lab">🧪 Codec Lab <span class="ver">AI Alpha</span></button>
     </span>
   </nav>
 
@@ -1817,6 +1819,196 @@
   </div>
 </main>
 
+  <main class="layout page page-codeclab" id="pageCodecLab" hidden>
+    <div class="codec-layout">
+      <!-- Left Panel: Decomposer Controls & Telemetry -->
+      <section class="codec-panel">
+        <div class="codec-header-badge">
+          <div>
+            <span style="font-weight:700;font-size:14px;color:var(--text)">🧪 Low-CPU Neural Vector Codec</span>
+            <span style="font-size:11px;color:var(--muted);display:block">Signal decomposition · Palette &amp; particle vectors · Instant playback</span>
+          </div>
+          <span class="codec-chip cpu">Low-CPU Engine</span>
+        </div>
+
+        <!-- Preset Anchor Scenes -->
+        <div>
+          <span style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:6px">Sample Anchor Scenes</span>
+          <div class="codec-presets-scroll">
+            <div class="codec-preset-card active" data-preset="cyberpunk" style="background:linear-gradient(135deg, #1e1b4b, #3b0764)">
+              <span>Cyberpunk</span>
+            </div>
+            <div class="codec-preset-card" data-preset="nebula" style="background:linear-gradient(135deg, #020617, #312e81)">
+              <span>Stargate</span>
+            </div>
+            <div class="codec-preset-card" data-preset="sunset" style="background:linear-gradient(135deg, #451a03, #b45309)">
+              <span>Sunset</span>
+            </div>
+            <div class="codec-preset-card" data-preset="aurora" style="background:linear-gradient(135deg, #022c22, #047857)">
+              <span>Aurora</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Image Generator & Uploader -->
+        <div class="codec-source-box">
+          <div class="codec-prompt-row">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label style="font-size:11.5px;font-weight:600;color:var(--text)">AI Scene Prompt</label>
+              <span class="mono tiny" style="color:var(--muted)">Anchor Frame Generator</span>
+            </div>
+            <input type="text" id="codecPromptInput" class="form-control" value="Cyberpunk neon metropolis with rainy reflections and volumetric light" placeholder="Describe a scene to synthesize...">
+            
+            <div class="codec-chips-bar">
+              <span class="codec-style-tag" data-prompt="Cyberpunk neon metropolis with rainy reflections and volumetric light">Cyberpunk</span>
+              <span class="codec-style-tag" data-prompt="Deep cosmic nebula galaxy with stellar dust and accretion disc">Cosmic Galaxy</span>
+              <span class="codec-style-tag" data-prompt="Golden hour sunset over calm ocean waves with warm sun glare">Golden Sunset</span>
+              <span class="codec-style-tag" data-prompt="Emerald northern lights aurora borealis over snowy pine mountains">Northern Lights</span>
+              <span class="codec-style-tag" data-prompt="Anime studio ghibli meadow with floating flower petals and wind">Anime Meadow</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" id="codecGenerateBtn" class="btn btn-small btn-primary" style="flex:1">✨ Generate &amp; Decompose</button>
+            <input type="file" id="codecFileInput" accept="image/*" style="display:none">
+            <button type="button" id="codecUploadBtn" class="btn btn-small">📁 Upload Image</button>
+            <button type="button" id="codecLibBtn" class="btn btn-small">📚 Library</button>
+          </div>
+        </div>
+
+        <!-- Signal Decomposition Matrix & Dominant Palette -->
+        <div class="codec-slider-group">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11.5px;font-weight:600">Dominant Palette Clusters</span>
+              <span class="mono tiny" style="color:var(--muted)">16 Centroids</span>
+            </div>
+            <div class="codec-palette-bar" id="codecPaletteBar"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px">
+            <span style="font-size:11.5px;font-weight:600">Particle Density (CPU Level)</span>
+            <select id="codecDensitySelect" class="form-control" style="font-size:11px;padding:3px 6px">
+              <option value="eco">Eco Mode (1,000 pts · Low CPU)</option>
+              <option value="balanced" selected>Balanced (3,200 pts · Standard)</option>
+              <option value="ultra">Ultra Fidelity (7,500 pts · High Res)</option>
+            </select>
+          </div>
+
+          <div class="codec-slide-row">
+            <div class="codec-slide-hdr"><span>Flow Motion Velocity</span><span class="codec-slide-val" id="codecVelVal">1.0x</span></div>
+            <input type="range" class="ls-range" id="codecVelRange" min="10" max="300" value="100">
+          </div>
+
+          <div class="codec-slide-row">
+            <div class="codec-slide-hdr"><span>Dynamic Exposure Pulse</span><span class="codec-slide-val" id="codecExpVal">30%</span></div>
+            <input type="range" class="ls-range" id="codecExpRange" min="0" max="100" value="30">
+          </div>
+
+          <div class="codec-slide-row">
+            <div class="codec-slide-hdr"><span>Cinematic Camera Parallax &amp; Zoom</span><span class="codec-slide-val" id="codecCamVal">25%</span></div>
+            <input type="range" class="ls-range" id="codecCamRange" min="0" max="100" value="25">
+          </div>
+
+          <div class="codec-slide-row">
+            <div class="codec-slide-hdr"><span>Morph Turbulence &amp; Fluid Flow</span><span class="codec-slide-val" id="codecTurbVal">35%</span></div>
+            <input type="range" class="ls-range" id="codecTurbRange" min="0" max="100" value="35">
+          </div>
+
+          <div class="codec-slide-row">
+            <div class="codec-slide-hdr"><span>Chromatic Tone Warp</span><span class="codec-slide-val" id="codecColorVal">15%</span></div>
+            <input type="range" class="ls-range" id="codecColorRange" min="0" max="100" value="15">
+          </div>
+        </div>
+
+        <!-- Real-Time CPU Signal Telemetry HUD -->
+        <div class="codec-telemetry">
+          <div class="codec-stat">
+            <span class="lbl">Active Particles</span>
+            <span class="val" id="codecStatParticles">3,200</span>
+          </div>
+          <div class="codec-stat">
+            <span class="lbl">Color Clusters</span>
+            <span class="val green" id="codecStatColors">16 clusters</span>
+          </div>
+          <div class="codec-stat">
+            <span class="lbl">Avg Exposure</span>
+            <span class="val" id="codecStatExposure">50%</span>
+          </div>
+          <div class="codec-stat">
+            <span class="lbl">Signal Bitrate</span>
+            <span class="val purple" id="codecStatBitrate">18.4 KB/s</span>
+          </div>
+          <div class="codec-stat">
+            <span class="lbl">CPU Workload</span>
+            <span class="val green" id="codecStatCpu">&lt; 5% Low-CPU</span>
+          </div>
+        </div>
+
+        <!-- Universal Transcoder & Ecosystem Bridges -->
+        <div class="codec-export-box">
+          <span style="font-size:12px;font-weight:700">Universal Transcoder &amp; Export</span>
+          <div class="codec-export-buttons">
+            <button type="button" id="codecExportVideoBtn" class="btn btn-primary btn-small">🎬 Export Universal Video (MP4/WebM)</button>
+            <button type="button" id="codecExportSignalBtn" class="btn btn-small" title="Export ultra-compact .onev sparse vector signal file">💾 Download .onev File</button>
+            <button type="button" id="codecSendLiveBtn" class="btn btn-small" title="Add to 24/7 Livestream broadcast playlist">📡 Send to Livestream</button>
+            <button type="button" id="codecSendEditorBtn" class="btn btn-small" title="Add to Timeline Editor track">🎞️ Send to Editor</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Inbuilt Real-Time Player -->
+      <section class="codec-panel">
+        <div class="codec-stage">
+          <div class="codec-canvas-wrap">
+            <canvas id="codecCanvas"></canvas>
+            <div class="codec-canvas-hud">
+              <span class="codec-hud-tag" id="codecActiveModeBadge">✨ AI Composite</span>
+              <span class="codec-hud-tag">1280x720 @ 60 FPS</span>
+            </div>
+          </div>
+
+          <!-- Transport Scrubber & Playback Controls -->
+          <div class="codec-transport">
+            <div class="codec-scrubber-row">
+              <button type="button" id="codecPlayBtn" class="btn btn-tiny">⏸ Pause</button>
+              <button type="button" id="codecResetBtn" class="btn btn-tiny">⏮</button>
+              <input type="range" class="codec-scrubber" id="codecScrubber" min="0" max="6" step="0.05" value="0">
+              <span class="codec-time-mono" id="codecTimeLbl">0.0s / 6.0s</span>
+            </div>
+
+            <div class="codec-controls-row">
+              <div class="codec-view-tabs">
+                <button type="button" class="codec-vtab on" data-mode="composite">✨ AI Composite</button>
+                <button type="button" class="codec-vtab" data-mode="palette">🌈 Color Clusters</button>
+                <button type="button" class="codec-vtab" data-mode="vectors">🌀 Vector Flow Field</button>
+                <button type="button" class="codec-vtab" data-mode="tone">🌓 Tone Heatmap</button>
+                <button type="button" class="codec-vtab" data-mode="split">✂️ Split View</button>
+              </div>
+
+              <div class="codec-ctrl-group">
+                <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text);cursor:pointer">
+                  <input type="checkbox" id="codecLoopToggle" checked>
+                  <span>Loop</span>
+                </label>
+                <select id="codecSpeedSelect" class="form-control" style="font-size:11px;padding:2px 4px">
+                  <option value="0.5">0.5x</option>
+                  <option value="1" selected>1.0x</option>
+                  <option value="2">2.0x</option>
+                  <option value="4">4.0x</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;color:var(--muted);line-height:1.5">
+          <strong style="color:var(--text);display:block;margin-bottom:4px">💡 How the Low-End CPU Signal Codec Works:</strong>
+          Instead of rendering millions of raw RGB values with heavy neural diffusion per frame, the CPU analyzes the anchor frame into a <strong>sparse signal matrix</strong> (16 dominant color centroids, exposure curve, and Lagrangian motion vectors). The inbuilt player recomposes the scene in real-time at <strong>60 FPS</strong> using GPU/Canvas hardware acceleration with <strong>under 5% CPU load</strong>.
+        </div>
+      </section>
+    </div>
+  </main>
 
   <main class="layout page" id="pageFeedback" hidden>
     <section class="panel studio">
@@ -2798,6 +2990,7 @@ function reply(text, status, cors) {
 <script type="module" src="src/photo-voice.js"></script>
 <script type="module" src="src/voice-import.js"></script>
 <script type="module" src="src/livestream.js"></script>
+<script type="module" src="src/codec-lab.js"></script>
 <script type="module" src="src/editor.js"></script>
 <script type="module" src="src/editor-agent.js"></script>
 <script type="module" src="src/guide.js"></script>

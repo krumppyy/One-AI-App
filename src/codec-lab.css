@@ -1,0 +1,381 @@
+/* One AI Studio - Neural Vector & Particle Video Codec Lab CSS */
+
+#pageCodecLab {
+  display: block;
+  width: 100%;
+}
+#pageCodecLab[hidden] {
+  display: none !important;
+}
+
+.codec-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 440px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1080px) {
+  .codec-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.codec-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.codec-header-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.codec-chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.codec-chip.cpu {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+
+/* Source Input Box */
+.codec-source-box {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.codec-prompt-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Quick prompt chips */
+.codec-chips-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.codec-style-tag {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.codec-style-tag:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: var(--panel-2);
+}
+
+/* Preset Scenes Carousel */
+.codec-presets-scroll {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.codec-preset-card {
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: #090d16;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 6px;
+}
+.codec-preset-card:hover {
+  border-color: var(--acc, #3b82f6);
+  transform: translateY(-1px);
+}
+.codec-preset-card.active {
+  border-color: var(--acc, #3b82f6);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+.codec-preset-card span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 2;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+/* Telemetry & CPU Signal HUD */
+.codec-telemetry {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  background: #040711;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px;
+  padding: 10px;
+}
+.codec-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.codec-stat .lbl {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.codec-stat .val {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.codec-stat .val.green {
+  color: #34d399;
+}
+.codec-stat .val.purple {
+  color: #c084fc;
+}
+
+/* Player Stage Canvas */
+.codec-stage {
+  background: #02040a;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+.codec-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#codecCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Stage HUD overlay */
+.codec-canvas-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.codec-hud-tag {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #f1f5f9;
+}
+
+/* Timeline scrubber & transport controls */
+.codec-transport {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-2);
+  border-top: 1px solid var(--line);
+  padding: 10px 14px;
+  gap: 8px;
+}
+.codec-scrubber-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.codec-scrubber {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+.codec-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--acc, #3b82f6);
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+.codec-time-mono {
+  font-family: monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.codec-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.codec-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* View Mode Selector Tabs */
+.codec-view-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px;
+  overflow-x: auto;
+}
+.codec-vtab {
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.codec-vtab:hover {
+  color: var(--text);
+}
+.codec-vtab.on {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Sliders */
+.codec-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.codec-slide-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.codec-slide-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text);
+}
+.codec-slide-val {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Color Palette Ribbon */
+.codec-palette-bar {
+  display: flex;
+  height: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 4px;
+}
+.codec-palette-swatch {
+  flex: 1;
+  height: 100%;
+  transition: transform 0.15s ease;
+}
+.codec-palette-swatch:hover {
+  transform: scaleY(1.3);
+  z-index: 2;
+}
+
+/* Action Export Bar */
+.codec-export-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.codec-export-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Theme adaptation */
+html[data-mode="white"] .codec-panel {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+html[data-mode="white"] .codec-source-box,
+html[data-mode="white"] .codec-slider-group,
+html[data-mode="white"] .codec-export-box,
+html[data-mode="white"] .codec-transport {
+  background: #f4f4f5;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html[data-mode="white"] .codec-telemetry {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.1);
+}

@@ -2616,7 +2616,7 @@ function syncTrackNote() {
 }
 
 function switchPage(id) {
-  for (const p of ["pageChat", "pageFeedback", "pageVideo", "pageImage", "pageReader", "pageStoryboard", "pageVoice", "pageLivestream", "pageEditor", "pageTutorial", "pageTutor"]) {
+  for (const p of ["pageChat", "pageFeedback", "pageVideo", "pageImage", "pageReader", "pageStoryboard", "pageVoice", "pageLivestream", "pageEditor", "pageCodecLab", "pageTutorial", "pageTutor"]) {
     const el = $(p);
     if (el) el.hidden = p !== id;
   }
