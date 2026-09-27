@@ -2024,6 +2024,37 @@
           <span class="aml-badge purple">Alpha v2</span>
         </div>
 
+        <!-- Ready-to-Go Base Models & Foundation Hub -->
+        <div class="aml-box" style="border-color:rgba(168,85,247,0.35)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;font-weight:700;color:#c084fc">📦 Ready-to-Go Base Models &amp; Foundations</span>
+            <button type="button" id="amlToggleCatalogBtn" class="btn btn-tiny" style="font-size:10px">Hide Catalog</button>
+          </div>
+          <span style="font-size:10.5px;color:var(--muted)">Select any ready-to-go foundation model or import your own weights to train / fine-tune your model on top of them.</span>
+
+          <!-- Active Base Foundation Banner -->
+          <div class="aml-base-active-banner" id="amlActiveBaseBanner">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text)" id="amlActiveBaseTitle">🎯 Base Foundation: Wan 2.1 Fun InP (1.3B)</div>
+              <div style="font-size:10px;color:var(--muted)" id="amlActiveBaseMeta">Apache 2.0 · Video Diffusion · Low-VRAM · LoRA Fine-Tuning Active</div>
+            </div>
+            <span class="aml-badge purple" id="amlActiveBaseTag">Backbone Frozen</span>
+          </div>
+
+          <!-- Catalog of Ready-to-go Models -->
+          <div id="amlBaseCatalogHolder">
+            <div class="aml-base-catalog" id="amlBaseCatalog"></div>
+
+            <!-- Custom Model Hub URL or File Import Row -->
+            <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
+              <input type="text" id="amlHubRepoInput" class="form-control" placeholder="HuggingFace Hub ID or URL (e.g. Wan-AI/Wan2.1-T2V-1.3B, Lightricks/LTX-Video)" style="flex:1;font-size:10.5px">
+              <button type="button" id="amlImportHubBtn" class="btn btn-small btn-primary">🌐 Import from Hub</button>
+              <input type="file" id="amlModelFileInput" accept=".safetensors,.gguf,.ankan-model,.bin,.pt,.json" style="display:none">
+              <button type="button" id="amlUploadModelFileBtn" class="btn btn-small">📂 Import Model File</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Model Name, Renaming & Checkpoint Registry -->
         <div class="aml-box" style="border-color:rgba(56,189,248,0.3)">
           <div style="display:flex;align-items:center;justify-content:space-between">
