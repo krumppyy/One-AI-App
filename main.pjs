@@ -1,0 +1,302 @@
+// AI Video Gen v1 — configuration & plugin imports.
+// The heavy lifting lives in src/ (see src/README.md and src/SPEC.md).
+
+$meta
+  title = AI Multimedia Toolkit V4
+  description = Six studios in one app: AI Chat (ask, learn and solve with free open-source chat models), AI Video Studio (turn any picture into a video with free open-source models — your own free Colab GPU, the free public pool, or on-device offline rendering), AI Image Studio, Text Reader, and AI Voiceover Studio.
+  tags = ai video generator, image to video, wan 2.2, cogvideox, ltx video, stable video diffusion, free, no watermark, camera control, colab, local gpu, offline, text to video, muapi, kling, veo, sora, seedance
+  image = https://user.uploads.dev/file/4e0feff79d9efa4163c707328f2a558f.jpg
+  header
+    mode = minimal
+
+// Where rendering happens, in order of preference:
+//   1. your own GPU server  (src/server/server.py — free Colab T4, Kaggle, SageMaker, local)
+//   2. the free public pool (public Hugging Face Gradio Spaces — a bonus, not a requirement)
+//   3. this device          (src/offline.js — a 2.5D camera rig; no network, no GPU)
+superFetch = {import:super-fetch-plugin}
+kv = {import:kv-plugin}
+uploadPlugin = {import:upload-plugin}
+generateImage = {import:text-to-image-plugin}
+// Powers the ✨ Auto-enhance button: turns a few words into a full
+// image-to-video prompt (motion, camera, angle, look & feel) and streams it
+// into the prompt box. See runEnhance() in src/app.js.
+generateText = {import:ai-text-plugin}
+commentsPlugin = {import:comments-plugin}
+
+// ---------------------------------------------------------------------------
+// Tunables. Everything here is safe to edit.
+// ---------------------------------------------------------------------------
+
+// Seconds a single generation can cover, per model family. Longer requests are
+// produced by chaining segments (last frame of one becomes the first of the next).
+// Human-readable mirror of the per-provider values in src/providers.js (the
+// engine reads those, not this list) — keep the two in step when adding a model.
+segmentLimits
+  wan22 = 5
+  ltx = 8.5
+  svd = 4
+
+// How long a failing model is skipped before Auto tries it again (seconds).
+// Read by src/engine.js. Keep `quota` short: the free allowance is metered per
+// ADDRESS, so a model that just ran out is usually fine from the next address,
+// and a long bench is what made the second run quit before it tried anything.
+// "Start every run fresh" (Settings → Privacy) clears the bench entirely and
+// steps the address before every run, which is the real cure.
+cooldown
+  quota = 60
+  busy = 90
+  paused = 3600
+  error = 120
+
+// Words appended to every prompt to keep motion coherent rather than melting.
+motionTail = smooth continuous natural motion, coherent subject, cinematic, high detail, stable
+
+// Prefix used for segments after the first, so the model continues the shot.
+chainPrefix = continuing the same uninterrupted shot,
+
+// The undress ladder. When "Undress" is on and NSFW is on, a run is split into
+// these stages instead of one flat prompt: each stage is the prompt for one
+// segment of the clip, so the person's clothing actually changes as the shot
+// progresses (see src/engine.js segmentPrompt). Later stages hint at the
+// garment being removed rather than naming nudity outright — that reads as a
+// real undress to the model, and it is what makes the chain work at all.
+// Kept in step with `nsfwStoryboard` below: it is the same ladder, one line
+// per rung, for the plain (non-storyboard) path.
+undressStages
+  her hands move slowly over her body, weight shifting, subtle continuous motion
+  she lifts her top and pulls it up over her head, revealing her bare chest
+  she unhooks and slips her bra off completely, now topless
+  she hooks her thumbs into her waistband and slowly slides her bottoms down
+  now fully nude, she runs her hands over her hips and turns her body
+
+// ---------------------------------------------------------------------------
+// THE STORYBOARD — the backend timeline behind "Undress through the clip".
+//
+// NOTHING HERE IS SHOWN IN THE UI, and nothing here is a prompt for the video
+// model directly. Each rung is a *keyframe*: a still that gets drawn first
+// (`garment` + `pose` + `expression` describe it), and the clip is then built
+// by animating from one keyframe to the next (`action`). That is the whole
+// trick behind realistic undress: a video model only animates the picture it
+// is handed, so the body has to actually change in the pictures.
+//
+//   garment     what she is wearing at the END of this rung. The keyframe is
+//               drawn with the clothes of the rung before it and only the
+//               clothing pixels are repainted — which is what keeps her face,
+//               her body and the background identical from rung to rung.
+//   action      the body movement for this rung — the motion prompt.
+//   pose        how the figure is arranged in the keyframe (fixes "the figure
+//               is not properly drawn": a plain "undress" prompt gives a
+//               static, badly-posed doll).
+//   expression  the face in the keyframe and through the motion. Without this
+//               the face stays blank, which is the other half of "unrealistic".
+//
+// Edit freely — add rungs, reword them, reorder them. src/storyboard.js maps
+// these rungs onto however many segments the clip length allows, and reads
+// every field by name.
+//
+// ONE RULE: never name a location in `action` (no "in the jungle", "on a
+// beach", "in the studio"). A rung's picture is made by an image model, and a
+// place named in the prompt is a place the model will *build* — replacing the
+// user's own room, and with it the person standing in it. Describe only what
+// the body does and what the face shows; the place is whatever the input
+// picture already is, and it is pinned there by FRAME_ANCHOR in
+// src/storyboard.js. Keep `pose` saying "the same pose, framing and camera
+// distance as the input picture" for the same reason.
+// ---------------------------------------------------------------------------
+//   method      how the keyframe for this rung is DRAWN from the frame before
+//               it. This is the field that decides how much of her is kept:
+//                 start   the rung she begins in — the picture is used as it is
+//                 evolve  img2img: whole frame repainted a little, so the pose
+//                         and the face change but the person does not
+//                 top     inpainting, clothing pixels only, chest region
+//                 bottom  inpainting, clothing pixels only, waist down
+//                 all     inpainting, everything the clothes detector found
+//               Inpainting is the only method that cannot change her identity,
+//               because everything outside the clothes mask is her own pixels,
+//               untouched.
+nsfwStoryboard
+  step
+    label = standing
+    method = start
+    garment = wearing her own outfit, exactly as in the input picture
+    action = she stands still, breathing, shifting her weight slowly, looking at the camera
+    pose = the same pose, framing and camera distance as the input picture
+    expression = calm, looking into the lens, lips slightly parted
+  step
+    label = hands on her body
+    method = evolve
+    garment = wearing her own outfit, exactly as in the input picture
+    action = her hands move slowly down over her body, over her hips and back up, anticipation building
+    pose = the same pose, framing and camera distance as the input picture
+    expression = steady gaze at the lens, lips parting
+  step
+    label = top open
+    method = top
+    garment = her top pulled open, bare breasts visible, the same garment pushed aside
+    action = she peels her top open and lets it hang, her bare chest coming free, breasts moving as they settle
+    pose = the same pose, framing and camera distance as the input picture
+    expression = flushed cheeks, lips parted, eyes on the lens
+  step
+    label = topless
+    method = top
+    garment = topless, bare breasts, her top gone
+    action = she slips the top off her shoulders and lets it drop away, then runs both hands slowly over her bare chest
+    pose = the same pose, framing and camera distance as the input picture
+    expression = eyes half closed, soft pleased smile
+  step
+    label = bottoms off
+    method = bottom
+    garment = topless and completely nude, nothing on
+    action = she hooks her thumbs into her waistband and works her bottoms down over her hips, stepping out of them
+    pose = the same pose, framing and camera distance as the input picture
+    expression = biting her lower lip, glancing up at the camera
+  step
+    label = nude
+    method = evolve
+    garment = completely nude
+    action = completely nude, she runs her hands slowly over her breasts and down over her stomach, breathing visibly
+    pose = the same pose, framing and camera distance as the input picture
+    expression = direct confident gaze, small knowing smile
+  step
+    label = sensual
+    method = evolve
+    garment = completely nude
+    action = she arches slightly and moves sensually, hands on her breasts and hips, chest rising and falling as she breathes
+    pose = the same pose, framing and camera distance as the input picture
+    expression = eyes closing, mouth open, aroused
+  step
+    label = closer
+    method = evolve
+    garment = completely nude
+    action = she leans toward the camera, moving slowly and sensually, chest moving with her breath
+    pose = the same pose, framing and camera distance as the input picture
+    expression = smouldering look straight into the lens
+
+// How the storyboard is turned into frames. Read by src/storyboard.js.
+storyboard
+  // Most beats a run is cut into. This — not the length a model happens to
+  // allow — is what decides how many keyframes get drawn and how many clips
+  // the result is stitched from, because a body that changes across four small
+  // steps looks real where the same change across one big step looks like mush.
+  maxBeats = 6
+  // Seconds one beat lasts. Each beat is one keyframe change and one clip, so
+  // shorter beats mean smaller, easier changes and a smoother result, at the
+  // cost of more renders. The plan never makes fewer than 1 beat.
+  beatSeconds = 1.6
+  // Minutes a single keyframe may wait in the free queue before the run gives
+  // up on it and reuses the frame it already has. This is a *cap*, not a
+  // delay: a registered key (or a quiet pool) draws a frame in seconds, and a
+  // run with a working key never sees it. It has to be generous because the
+  // anonymous inpainting lane is genuinely deep — measured at 5–15 minutes a
+  // job (positions 130–220) — and at the old 6 the anonymous run gave up on
+  // every frame, drew nothing, and stopped before a single clip was rendered.
+  // Cancel is live throughout, and the queue position is shown while it waits.
+  keyframeWaitMin = 15
+  // img2img strength for the rungs that only change pose/expression (clothing
+  // already off). Kept LOW on purpose: this is the dial that decides whether
+  // she is still the same woman afterwards. It used to be 0.55, which was
+  // enough for a whole-frame img2img pass to re-cast the scene — a hotel-room
+  // portrait came back as a different woman in a jungle. The video model
+  // between the stills supplies the movement, so likeness wins.
+  poseDenoise = 0.4
+  // img2img / inpaint strength for the rungs that remove a garment.
+  removeDenoise = 0.85
+  // Redraw just her face on a rung whose expression changes. Inpainting
+  // protects the head on purpose (that is what keeps her the same person), so
+  // without this a rung's `expression` would never reach the still. Costs one
+  // extra free-queue job per expression change; set to 0 to switch it off.
+  refaceKeyframes = true
+  // How much a garment-removing step must actually change the picture before it
+  // is accepted, as the share of pixels that changed. A worker that quietly
+  // refused returns the frame it was handed (≈ 0); a real repaint of a garment
+  // changes a tenth of the picture or more. Below this the step is re-drawn
+  // once, harder. Lower it if retries fire on legitimate subtle steps.
+  minFrameChange = 0.02
+  // Character lock. A rung that removes a garment is repainted through the
+  // on-device clothes mask (inpainting) and never through whole-frame img2img,
+  // because everything outside that mask is copied back from the previous frame
+  // at full resolution — that is the only method that provably cannot change
+  // her face, her hair or her room. Set to 0 to let such a rung redraw the
+  // whole frame instead (faster, and it will drift).
+  lockIdentity = true
+
+// ---------------------------------------------------------------------------
+// THE MOTION REFERENCE — how the body actually moves.
+//
+// Not shown in the UI either. A video model asked to "undress" has never seen
+// anyone undress, so it invents the movement, and inventing movement is how a
+// body ends up standing still while the picture slowly wobbles. The fix is not
+// a better prompt: it is to stop asking the model to invent motion at all.
+//
+// So for each storyboard beat the backend builds a small driving clip — a
+// plain, fully-clothed actor performing that beat's *movement* — and hands it,
+// together with the beat's keyframe, to a character-animation model (Wan
+// Animate, via the free Spaces in src/providers.js). That model re-renders the
+// keyframe person performing the driving clip's movement joint for joint, with
+// the driving face's expression on hers. The nudity still comes from the
+// keyframe; the driver only ever supplies movement, which is also what keeps
+// the free Spaces happy enough to accept the job.
+//
+// Read by src/motion.js and src/engine.js (makeDriverClip).
+//   enabled      on/off. It costs one extra clip per beat, so a beat is longer
+//                here than in a plain storyboard run (see `maxBeats`).
+//   maxBeats     most beats a motion-transfer run is cut into.
+//   steps        sampling steps for the transfer itself.
+//   driverMaxSec longest driving clip a beat may build.
+// ---------------------------------------------------------------------------
+motionTransfer
+  enabled = true
+  maxBeats = 4
+  steps = 5
+  driverMaxSec = 3
+
+// Appended to every storyboard beat's prompt, on top of `motionTail` above.
+// This is the answer to "the body and the face do not move": a video model
+// renders the motion it is told about, so the motion has to be told, and told
+// in the language of a whole living body rather than a pose. Read by
+// src/storyboard.js (STORYBOARD_MOTION) so it can be reworded without code.
+storyboardMotion = natural realistic human movement, whole body in motion, weight shifting from foot to foot, hips and shoulders counter-rotating as she moves, arms swinging loosely, breasts bouncing and settling with the motion, head turning, hair moving, breathing, blinking, lips and jaw moving as her expression changes, anatomically correct proportions, smooth continuous motion
+
+// How the undress mask is built, on this device, before anything is sent to be
+// repainted. Read by src/segment.js (`maskTunables()`), which uses the same
+// values as its fallbacks, so this list tells the truth about what is in use.
+//
+//   grow     expand the detected garment by this fraction of the picture's
+//            short side before it is feathered. The detector is reliable on the
+//            bulk of a garment and can miss a dark or low-contrast edge — and a
+//            missed edge is left behind as a film of the original fabric over
+//            the repainted skin. Growing the mask pushes those edges inside the
+//            repaint; the composite still copies everything outside the mask
+//            back from the original, so the cost is a sliver of invented skin
+//            along the boundary. 0 turns the growth off.
+//   feather  how softly the mask's edge fades, as a fraction of the short side
+//            (the worker blends its output into the photo through it).
+//   protect  how hard the head classes (face, hair, hat) are excluded from the
+//            mask. Higher is stricter.
+nsfwMask
+  grow = 0.014
+  feather = 0.02
+  protect = 1.15
+
+// Defaults a fresh visitor starts from. These document the shipped values;
+// the live settings live in kv-plugin (IndexedDB) and are seeded from
+// DEFAULT_SETTINGS in src/store.js — edit that file to change behaviour,
+// and keep this list in step so the two do not drift.
+defaults
+  aspect = 16:9
+  quality = 480p
+  style = cinematic
+  crossfade = 0.35
+  duration = 5
+  // Output frame rate. 0 = the model's own rate. Anything else forces it:
+  // the on-device renderer encodes exactly this, your GPU server interpolates
+  // up to it, and a clip from a free or commercial model is re-timed here.
+  fps = 0
+  undress = false
+  // Bring-your-own-key gateways: replicate.com, fal.ai, runwayml.com, and
+  // muapi.ai — one key that unlocks 51 commercial models (Kling, Veo, Sora,
+  // Seedance, Wan, Hailuo, uncensored builds) grouped into six sections of the
+  // model list. Paid per generation; see src/muapi.js and src/muapi-models.js.
+  muapiKey = (empty; paste yours in Settings → MuAPI)
+
+

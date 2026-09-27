@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Multimedia Toolkit V4</title>
+  <meta name="description" content="Six studios in one app: AI Chat, AI Video Studio, AI Image Studio, Text Reader, Storyboard, and AI Voiceover Studio.">
+  <meta property="og:title" content="AI Multimedia Toolkit V4">
+  <meta property="og:description" content="Six studios in one app: AI Chat, AI Video Studio, AI Image Studio, Text Reader, Storyboard, and AI Voiceover Studio.">
+  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/editor.css">
+  <link rel="stylesheet" href="src/chat.css">
+  <link rel="stylesheet" href="src/guide.css">
+  <link rel="stylesheet" href="src/storyboard.css">
+  <script src="src/perchance-shim.js"></script>
+</head>
+<body>
+<div class="bg-orbs" aria-hidden="true">
+  <span></span><span></span><span></span>
+</div>
+
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" id="brandLogo" aria-hidden="true" title="">
+        <svg viewBox="0 0 24 24" width="26" height="26">
+          <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h7A1.5 1.5 0 0 1 14 5.5v13A1.5 1.5 0 0 1 12.5 20h-7A1.5 1.5 0 0 1 4 18.5z" fill="currentColor" opacity=".9"/>
+          <path d="M15.4 9.2 21 6.1v11.8l-5.6-3.1z" fill="currentColor" opacity=".55"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AI Multimedia Toolkit <span class="ver">V4</span></h1>
+        <p class="tagline">chat · image · video · reader · storyboard · voiceover · editor beta testing</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div id="gpuChip" class="chip chip-idle" title="Where clips are being rendered right now"><i class="dot"></i><span id="gpuText">idle</span></div>
+      <button id="themeBtn" class="btn btn-ghost btn-icon" type="button" title="Switch to light theme" aria-label="Switch theme"></button>
+      <button id="historyBtn" class="btn btn-ghost" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 8v5l3.5 2M12 3a9 9 0 1 0 9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Library
+      </button>
+      <button id="settingsBtn" class="btn btn-ghost" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.7-1.3-1.7-3-2 .8a7.6 7.6 0 0 0-2.6-1.5L14.5 3h-5l-.3 2.5a7.6 7.6 0 0 0-2.6 1.5l-2-.8-1.7 3L4.6 10.5a7.6 7.6 0 0 0 0 3L2.9 14.8l1.7 3 2-.8a7.6 7.6 0 0 0 2.6 1.5L9.5 21h5l.3-2.5a7.6 7.6 0 0 0 2.6-1.5l2 .8 1.7-3z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Settings
+      </button>
+      <button id="tutorBtn" class="btn btn-ghost studio-tab" type="button" data-page="pageTutor" title="Ask the AI tutor anything about this app">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><defs><linearGradient id="tutorG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bff"/><stop offset="1" stop-color="#3ec6ff"/></linearGradient></defs><path d="M12 2.2 19.3 6.4v8.2L12 18.8 4.7 14.6V6.4z" fill="none" stroke="url(#tutorG)" stroke-width="1.9" stroke-linejoin="round"/><text x="12" y="15.2" text-anchor="middle" font-size="9.5" font-weight="800" fill="url(#tutorG)">?</text></svg>
+        AI Tutor
+      </button>
+      <button id="tabTutorialBtn" class="studio-tab btn btn-ghost" type="button" role="tab" aria-selected="false" data-page="pageTutorial" title="Step-by-step guides for every studio">
+        Tutorial
+      </button>
+      <button id="tabFeedbackBtn" class="studio-tab btn nav-feedback-top" type="button" role="tab" aria-selected="false" data-page="pageFeedback" title="Suggest features and report bugs">
+        💬 Feedback
+      </button>
+    </div>
+  </header>
+  <nav class="studio-nav" role="tablist" aria-label="Studios">
+    <span class="nav-group">
+    <button id="tabChatBtn" class="studio-tab on" type="button" role="tab" aria-selected="true" data-page="pageChat">AI Chat</button>
+    <button id="tabImageBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageImage">Image</button>
+    <button id="tabVideoBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageVideo">Video</button>
+    <button id="tabReaderBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageReader">Reader</button>
+    <button id="tabStoryboardBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageStoryboard" title="Unlimited storyboard images, compile to video">Storyboard</button>
+    <button id="tabVoiceBtn" class="studio-tab" type="button" role="tab" aria-selected="false" data-page="pageVoice">Voiceover</button>
+    <button id="tabEditorBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageEditor" title="Early beta — expect rough edges">Editor <span class="ver">beta testing</span></button>
+    </span>
+  </nav>
+
+  <div id="quotaBanner" class="banner" hidden>
+    <span class="banner-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 9v4m0 4h.01M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+    </span>
+    <div class="banner-body">
+      <strong id="bannerTitle">Free GPUs are busy</strong>
+      <span id="bannerText">Quota spent. Rotate address, use your own GPU, or render on-device.</span>
+    </div>
+    <button id="bannerResetBtn" class="btn btn-small" type="button">Retry</button>
+    <button id="bannerOwnAddressBtn" class="btn btn-small" type="button" title="Clear the Hugging Face token and turn strict privacy off, so requests are metered to your own address's anonymous share instead of an account's spent one. Trade-off: the model then sees your address rather than the relay's.">My address</button>
+    <button id="bannerTokenBtn" class="btn btn-small" type="button">Add token</button>
+    <button id="bannerCloseBtn" class="btn btn-tiny" type="button" title="Dismiss">Dismiss</button>
+  </div>
+  <div id="v4ResumeBar" class="banner" hidden style="margin-top:8px">
+    <div class="banner-body"><strong>Continue?</strong> <span id="v4ResumeTxt"></span> <span id="v4AutoNote" class="mono tiny" hidden></span></div>
+    <button id="v4ResumeGo" class="btn btn-small btn-primary" type="button">Resume last work</button>
+    <button id="v4ResumeFresh" class="btn btn-small" type="button">Start fresh</button>
+  </div>
+
+  <main class="layout page page-chat" id="pageChat">
+    <section class="panel chat-side">
+      <div class="panel-head">
+        <h2>Chats</h2>
+        <button id="chatNewBtn" class="btn btn-tiny btn-primary" type="button">+ New</button>
+      </div>
+      <input id="chatSearchInput" class="mono" type="search" placeholder="Search chats…" autocomplete="off">
+      <div id="chatList" class="chat-list"></div>
+      <div class="chat-side-foot">
+        <button id="chatClearBtn" class="btn btn-tiny" type="button">Clear all</button>
+        <span class="hint">saved on this device</span>
+      </div>
+    </section>
+    <section class="panel chat-main">
+      <div class="panel-head chat-head">
+        <div>
+          <h2>AI Chat</h2>
+          <span class="hint">ask · learn · solve — free · no key</span>
+        </div>
+        <div class="chat-head-tools">
+          <select id="chatModelSel" class="tiny-select" title="Chat model"></select>
+          <select id="chatExportSel" class="tiny-select" title="Export this chat">
+            <option value="">Export…</option>
+            <option value="txt">Text (.txt)</option>
+            <option value="doc">Word (.doc)</option>
+            <option value="pdf">PDF (print)</option>
+            <option value="csv">Excel (.csv)</option>
+            <option value="json">Data (.json)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-between prompt-row">
+        <div id="chatModelNote" class="model-note"></div>
+        <span id="chatToast" class="mono tiny chat-toast" hidden></span>
+      </div>
+      <div id="chatMsgs" class="chat-msgs" aria-live="polite">
+        <div class="screen-ph" id="chatEmpty">
+          <strong>Ask anything</strong>
+          <p>Homework, code, writing, ideas — pick an open-source model and start typing below.</p>
+          <div class="chat-chips" id="chatStarterRow">
+            <button type="button" data-q="Explain quantum computing in simple terms">Explain quantum computing</button>
+            <button type="button" data-q="Write a Python function to check if a string is a palindrome">Python palindrome</button>
+            <button type="button" data-q="Help me write a polite email asking for a deadline extension">Email draft</button>
+            <button type="button" data-q="Give me a 7-day beginner workout plan with no equipment">Workout plan</button>
+          </div>
+        </div>
+      </div>
+      <div id="chatStopRow" class="chat-stop" hidden>
+        <span class="mono tiny" id="chatStatus">thinking…</span>
+        <button id="chatStopBtn" class="btn btn-tiny btn-danger" type="button">Stop</button>
+      </div>
+      <div class="chat-composer">
+        <textarea id="chatInput" rows="2" placeholder="Chat here — ask anything… (Enter = send, Shift+Enter = new line)"></textarea>
+        <button id="chatSendBtn" type="button" title="Send message" aria-label="Send message">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div id="chatSelPop" class="chat-selpop" hidden>
+        <span class="mono tiny">Send selection to</span>
+        <button type="button" data-to="image">Image</button>
+        <button type="button" data-to="video">Video</button>
+        <button type="button" data-to="voice">Voice</button>
+        <button type="button" data-to="copy">Copy</button>
+      </div>
+      <div class="row-between prompt-row">
+        <span class="hint">Free open-source models. Check important answers.</span>
+        <span id="chatCount" class="mono tiny"></span>
+      </div>
+    </section>
+  </main>
+
+  <main class="layout page page-image" id="pageImage" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>AI Image Studio</h2>
+        <span class="hint">free · no key</span>
+      </div>
+      <div class="seg gen-mode" id="imgModeRow">
+        <button type="button" data-mode="t2i" class="on">Text</button>
+        <button type="button" data-mode="edit">Edit</button>
+      </div>
+      <div class="field" id="imgImportRow" hidden>
+        <label class="lbl">Import image <span class="hint">the picture to edit</span></label>
+        <div id="imgDropzone" class="dropzone" tabindex="0">
+          <input id="imgFileInput" type="file" accept="image/*" hidden>
+          <div id="imgDzEmpty" class="dz-empty">
+            <strong>Drop image here</strong>
+            <span>PNG · JPG · WEBP</span>
+          </div>
+          <div id="imgDzFilled" class="dz-filled" hidden>
+            <div class="dz-preview-wrap">
+              <img id="imgRefPreview" alt="image to edit">
+              <button id="imgClearBtn" class="dz-x" type="button" title="Remove image" aria-label="Remove image">×</button>
+            </div>
+            <div class="dz-meta">
+              <span id="imgRefName" class="mono"></span>
+              <span id="imgRefDims" class="mono tiny"></span>
+              <div class="dz-actions">
+                <button id="imgCropBtn" class="btn btn-tiny" type="button">Crop</button>
+                <button id="imgRemoveBtn" class="btn btn-tiny" type="button">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="imgPromptInput">Prompt <span class="hint" id="imgPromptHint"></span></label>
+        <textarea id="imgPromptInput" rows="3" placeholder="e.g. a neon-lit street portrait, cinematic light, ultra detailed"></textarea>
+        <div class="row-between prompt-row">
+          <span id="imgPromptCount" class="mono tiny">0 chars</span>
+          <button id="imgEnhanceBtn" class="btn btn-tiny" type="button" title="Turn a few words into a rich image prompt">✨ Auto&#8209;enhance</button>
+        </div>
+      </div>
+      <details class="fold">
+        <summary>Negative prompt</summary>
+        <textarea id="imgNegInput" rows="2" placeholder="what to avoid — e.g. blurry, deformed hands"></textarea>
+        <div class="row-between prompt-row">
+          <span class="hint">Empty = default avoid-list rides along. AI writes it from your prompt above.</span>
+          <button id="imgNegAiBtn" class="btn btn-tiny" type="button" title="Let AI write the negative prompt from your main prompt">✨ AI negative</button>
+        </div>
+      </details>
+      <div class="field">
+        <label class="lbl" for="imgModelSel">Model <span class="hint">free</span></label>
+        <select id="imgModelSel"></select>
+        <div id="imgModelNote" class="model-note"></div>
+      </div>
+      <div class="field">
+        <label class="lbl">Aspect ratio</label>
+        <div id="imgAspectRow" class="chips"></div>
+        <div class="row-between" style="margin-top:8px">
+          <div id="imgSizeRow" class="seg"></div>
+          <span id="imgDimsOut" class="mono tiny"></span>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl">Variations <span class="hint"></span></label>
+          <div id="imgCountRow" class="seg"></div>
+        </div>
+        <div class="field">
+          <label class="lbl" for="imgSeedInput">Seed <span class="hint">random</span></label>
+          <input id="imgSeedInput" class="mono" type="text" placeholder="random" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field" id="imgStrengthField" hidden>
+        <div class="row-between">
+          <label class="lbl" for="imgStrengthRange" style="margin:0">Edit strength <span class="hint" id="imgStrengthVal">0.60</span></label>
+        </div>
+        <input id="imgStrengthRange" class="range" type="range" min="0.15" max="0.95" step="0.05" value="0.6">
+        <div class="hint-block">Low = faithful · high = creative.</div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="imgLoraSel">LoRA <span class="hint"></span></label>
+          <select id="imgLoraSel"></select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="imgControlSel">Control <span class="hint"></span></label>
+          <select id="imgControlSel"></select>
+        </div>
+      </div>
+      <label class="switch-row" id="imgNsfwRow">
+        <span>
+          <strong>NSFW</strong>
+          <em>Uncensored routes. Auto-retry on refusal.</em>
+        </span>
+        <input id="imgNsfwToggle" type="checkbox" class="switch">
+      </label>
+      <label class="switch-row" id="imgAgentRow">
+        <span>
+          <strong>Agent edit</strong>
+          <em>Split prompt into steps, apply one by one.</em>
+        </span>
+        <input id="imgAgentToggle" type="checkbox" class="switch">
+      </label>
+      <div id="imgAgentSteps" class="model-note" hidden></div>
+      <div class="field" id="imgPoseField" hidden>
+        <label class="lbl">Pose variants <span class="hint">same face, new angles</span></label>
+        <div id="imgPoseRow" class="chips"></div>
+        <div class="row-between prompt-row">
+          <span id="imgPoseHint" class="hint">Pick angles, then run the set.</span>
+          <button id="imgPoseBtn" class="btn btn-tiny" type="button" title="Generate one image per picked pose from the imported photo, face-locked">Generate pose set</button>
+        </div>
+        <div id="imgPoseNote" class="model-note"></div>
+      </div>
+      <div class="generate-bar">
+        <button id="imgGenerateBtn" class="btn btn-primary btn-lg" type="button"><span id="imgGenLabel">Generate image</span></button>
+        <button id="imgCancelBtn" class="btn btn-danger btn-lg" type="button" hidden>Stop</button>
+      </div>
+      <div id="imgNote" class="model-note"></div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Canvas</h2><div id="imgStageTags" class="tags"></div></div>
+      <div class="gallery-bar">
+        <span class="lbl">View</span>
+        <div id="imgViewRow" class="seg" role="group" aria-label="Gallery view size"></div>
+        <button id="imgPickAllBtn" class="btn btn-tiny" type="button" title="Select / clear all variations for sending">Select all</button>
+      </div>
+      <div class="screen" id="imgScreen">
+        <div id="imgHeroWrap" class="img-hero-wrap" hidden><img id="imgHero" alt="generated image"><div id="imgGradeVeil" class="grade-veil" hidden></div></div>
+        <div id="imgGrid" class="img-grid" hidden></div>
+        <div id="imgPlaceholder" class="screen-ph">
+          <strong>Preview</strong>
+          <p>Describe it, hit Generate.</p>
+        </div>
+        <div id="imgBusy" class="screen-busy" hidden>
+          <div class="scanline"></div>
+          <div class="busy-box"><div class="busy-label">drawing</div><div class="busy-msg" id="imgBusyMsg">Painting pixels…</div></div>
+        </div>
+      </div>
+      <div id="imgResultBar" class="result-bar" hidden>
+        <div id="imgResultInfo" class="mono tiny"></div>
+        <details class="fold grade-fold" id="imgGradeFold">
+          <summary>Color grade <span class="hint" id="imgGradeState">off</span></summary>
+          <div class="grade-body">
+            <div class="row-between">
+              <span class="lbl" style="margin:0">Filter</span>
+              <button id="igReset" class="btn btn-tiny" type="button" title="Clear the grade">Reset</button>
+            </div>
+            <div id="igPresetRow" class="chips"></div>
+            <div class="grade-grid">
+              <label class="grade-lbl">Intensity <span class="mono tiny" id="igIntensityVal">1.00</span><input id="igIntensity" class="range" type="range" min="0" max="1" step="0.05" value="1"></label>
+              <label class="grade-lbl">Saturation <span class="mono tiny" id="igSatVal">1.00</span><input id="igSat" class="range" type="range" min="0" max="2" step="0.05" value="1"></label>
+              <label class="grade-lbl">Light <span class="mono tiny" id="igLightVal">1.00</span><input id="igLight" class="range" type="range" min="0.5" max="1.5" step="0.02" value="1"></label>
+              <label class="grade-lbl">Contrast <span class="mono tiny" id="igContrastVal">1.00</span><input id="igContrast" class="range" type="range" min="0.5" max="1.5" step="0.02" value="1"></label>
+              <label class="grade-lbl">Gamma <span class="mono tiny" id="igGammaVal">1.00</span><input id="igGamma" class="range" type="range" min="0.4" max="2.2" step="0.05" value="1"></label>
+              <label class="grade-lbl">Grain <span class="mono tiny" id="igGrainVal">0.00</span><input id="igGrain" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+              <label class="grade-lbl">Light leak <span class="mono tiny" id="igLeakVal">0.00</span><input id="igLeak" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+              <label class="grade-lbl">Sharpen <span class="mono tiny" id="igSharpVal">0.00</span><input id="igSharp" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+            </div>
+            <div class="hint-block">Preview on the canvas. Applied when you Download.</div>
+          </div>
+        </details>
+        <div class="export-row">
+          <button id="importImgBtn" class="btn btn-tiny" type="button" title="Import an image to preview, upscale and encode directly">⤓ Import image</button>
+          <span class="sticker-bar" id="imgStickerBar" title="Stickers — tap to add, drag to move, scroll to resize, double-click to remove"></span>
+          <label class="export-lbl">Frame
+            <select id="imgFrameSel" class="tiny-select" title="Ready-made frame baked into the download"></select>
+          </label>
+          <label class="export-lbl">Format
+            <select id="imgFormatSel" class="tiny-select" title="Export encoder"></select>
+          </label>
+          <label class="export-lbl">Upscale
+            <select id="imgScaleSel" class="tiny-select" title="Lossless upscale factor"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="480p">480p</option><option value="720p">720p</option><option value="1080p">1080p</option></select>
+          </label>
+          <label class="export-lbl">Mode
+            <select id="imgUpscaleModeSel" class="tiny-select" title="Fast = bicubic, Quality = sharpened, AI = neural net"><option value="fast">Fast</option><option value="quality">Quality</option><option value="ai">AI</option></select>
+          </label>
+          <label class="export-lbl">Quality
+            <input id="imgQualityRange" class="range qrange" type="range" min="0.1" max="1" step="0.05" value="0.92" title="Export quality / compression">
+            <span id="imgQualityVal" class="mono tiny">0.92</span>
+          </label>
+        </div>
+        <div class="result-actions">
+          <button id="imgUseBtn" class="btn btn-ghost" type="button" title="Edit this variation next">Edit this</button>
+          <button id="imgVideoBtn" class="btn btn-ghost" type="button" title="Send checked variations to the video studio (first = starter, rest = references), or the previewed one">→ Video</button>
+          <button id="imgBoardBtn" class="btn btn-ghost" type="button" title="Send checked variations to the storyboard as frames, or the previewed one">→ Storyboard</button>
+          <button id="imgSaveBtn" class="btn btn-ghost" type="button" title="Save this image to the Library">💾 Save</button>
+          <button id="imgDownloadBtn" class="btn btn-primary" type="button">Download</button>
+          <button id="imgExportStopBtn" class="btn btn-danger" type="button" hidden>Stop</button>
+        </div>
+        <div class="save-meta">
+          <label class="export-lbl">Name <input id="imgNameInput" class="mono" type="text" placeholder="e.g. neon portrait" autocomplete="off" style="min-width:130px"></label>
+          <label class="export-lbl">Library <select id="imgLibCatSel" class="tiny-select" title="Library category to save into"></select></label>
+          <label class="export-lbl">Character <input id="imgCharInput" class="mono" type="text" placeholder="optional" autocomplete="off" style="width:90px"></label>
+          <label class="export-lbl">Scene <input id="imgSceneInput" class="mono" type="text" placeholder="optional" autocomplete="off" style="width:90px"></label>
+        </div>
+      </div>
+      <details class="fold log-fold" open>
+        <summary>Run log</summary>
+        <div class="log-mode-row">
+          <div id="imgLogModeRow" class="seg" role="group" aria-label="Image log detail"></div>
+          <span class="hint">Simple reads like a studio.</span>
+        </div>
+        <div id="imgLogBox" class="logbox mono">Ready.</div>
+      </details>
+    </section>
+  </main>
+
+  <main class="layout page page-video" id="pageVideo" hidden>
+    <!-- ============ LEFT: STUDIO ============ -->
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Studio</h2>
+        <button id="resetBtn" class="btn btn-tiny" type="button" title="Reset run state">Reset</button>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Starter frame</label>
+        <div class="seg gen-mode" id="refModeRow" role="group" aria-label="Reference mode">
+          <button type="button" data-mode="single" class="on">Single image</button>
+          <button type="button" data-mode="multi">Multiple images</button>
+        </div>
+        <div id="dropzone" class="dropzone" tabindex="0">
+          <input id="fileInput" type="file" accept="image/*,video/*,.gif,.mp4,.webm,.mov,.mkv" hidden>
+          <div id="dzEmpty" class="dz-empty">
+            <svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <strong>Drop image or video here</strong>
+            <span>PNG · JPG · WEBP · GIF · MP4 · WEBM · MOV · MKV</span>
+          </div>
+          <div id="dzFilled" class="dz-filled" hidden>
+            <div class="dz-preview-wrap">
+              <img id="refPreview" alt="reference image preview">
+              <button id="clearImgBtn" class="dz-x" type="button" title="Remove image" aria-label="Remove image">×</button>
+            </div>
+            <div class="dz-meta">
+              <span id="refName" class="mono"></span>
+              <span id="refDims" class="mono tiny"></span>
+              <div id="cropRow" class="crop-row">
+                <select id="cropRatioSel" class="tiny-select" title="Crop shape"></select>
+                <button id="cropBtn" class="btn btn-tiny" type="button">Crop</button>
+              </div>
+              <div class="dz-actions">
+                <button id="repaintBtn" class="btn btn-tiny" type="button" hidden>Repaint area</button>
+                <button id="keyframeBtn" class="btn btn-tiny" type="button">Draw from prompt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hint-block">PNG · JPG · WEBP · GIF · MP4 · WEBM · MOV · MKV.</div>
+        <div id="importVideoBar" class="dz-actions" style="margin-top:8px">
+          <button id="importVideoBtn" class="btn btn-tiny" type="button" title="Pick a video file to preview, upscale and encode">⤓ Import video</button>
+          <button id="playImportBtn" class="btn btn-tiny" type="button" title="Play the imported video in the Stage player" hidden>▶ Play in player</button>
+          <button id="saveImportBtn" class="btn btn-tiny" type="button" title="Save the imported video to the Library" hidden>💾 Save to Library</button>
+        </div>
+        <div id="importSaveNote" class="model-note" hidden></div>
+        <div id="framePickWrap" hidden>
+          <div class="row-between" style="margin:10px 0 6px">
+            <label class="lbl" style="margin:0">Video frames</label>
+            <span id="frameTimeOut" class="mono tiny"></span>
+          </div>
+          <video id="frameVideo" class="frame-video" playsinline preload="auto" muted></video>
+          <input id="frameRange" class="range" type="range" min="0" max="1000" step="1" value="0" aria-label="Pick a frame">
+          <div class="dz-actions">
+            <button id="frameUseBtn" class="btn btn-tiny btn-primary" type="button">Use this frame</button>
+          </div>
+        </div>
+        <div id="refBoardWrap" hidden>
+          <div class="row-between" style="margin:10px 0 6px">
+            <label class="lbl" style="margin:0">Reference images <span class="hint">optional · face / characters / scene</span></label>
+            <button id="refClearAllBtn" class="btn btn-tiny" type="button" title="Remove all reference images">Clear all</button>
+          </div>
+          <div id="refBoard" class="ref-board"></div>
+          <div id="refBoardNote" class="model-note">Extra refs guide identity on supported models.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="promptInput">Prompt</label>
+        <textarea id="promptInput" rows="3" placeholder="e.g. the woman slowly turns her head and smiles, hair moving in the wind, warm sunset light"></textarea>
+        <div class="row-between prompt-row">
+          <span id="promptCount" class="mono tiny">0 chars</span>
+          <span class="enhance-tools">
+            <select id="enhanceModeSel" class="tiny-select" title="How the enhancer should rewrite your idea"></select>
+            <button id="enhanceBtn" class="btn btn-tiny" type="button" title="Add motion, camera and detail words">✨ Auto&#8209;enhance</button>
+          </span>
+        </div>
+      </div>
+
+      <details class="fold">
+        <summary>Negative prompt</summary>
+        <textarea id="negInput" rows="3" placeholder="what to avoid"></textarea>
+        <div class="row-between prompt-row">
+          <span class="hint">Empty = auto.</span>
+          <button id="negAiBtn" class="btn btn-tiny" type="button" title="AI writes the negative">✨ AI negative</button>
+        </div>
+      </details>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="moveSel">Camera</label>
+          <select id="moveSel"></select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="angleSel">Angle</label>
+          <select id="angleSel"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="camIdeaInput">Camera idea</label>
+        <div class="key-row">
+          <input id="camIdeaInput" class="mono" type="text" placeholder="e.g. slow swooping drone over the scene, looking up">
+          <button id="camPickBtn" class="btn btn-tiny" type="button" title="AI picks camera from your idea">✨ AI pick</button>
+        </div>
+        <label class="switch-row compact" style="margin-top:8px">
+          <span><strong>Camera in prompt</strong><em>Off.</em></span>
+          <input id="camWordsToggle" type="checkbox" class="switch">
+        </label>
+        <div id="camWordsOut" class="model-note"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="trackSel">Tracking</label>
+        <select id="trackSel"></select>
+        <div class="row-between" style="margin-top:8px">
+          <label class="lbl" for="trackStrengthRange" style="margin:0">Strength <span class="hint" id="trackStrengthVal">0.6</span></label>
+        </div>
+        <input id="trackStrengthRange" class="range" type="range" min="0" max="1" step="0.05" value="0.6">
+        <div id="trackNote" class="model-note">Off.</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="styleSel">Style</label>
+        <select id="styleSel"></select>
+      </div>
+
+      <div class="field gen" id="genStdRow">
+        <label class="switch-row gen-head" for="stdGenToggle">
+          <span>
+            <strong>Standard</strong>
+            <em>General models.</em>
+          </span>
+          <input id="stdGenToggle" type="checkbox" class="switch" checked>
+        </label>
+        <div class="gen-body" id="stdGenBody">
+          <div class="seg gen-mode" id="stdModeRow">
+            <button type="button" data-mode="auto" class="on">Auto — best in this pool</button>
+            <button type="button" data-mode="selected">Pick a model</button>
+          </div>
+          <select id="stdModelSel" hidden></select>
+        </div>
+        <div id="stdNote" class="model-note"></div>
+      </div>
+
+      <div class="field gen" id="genNsfwRow">
+        <label class="switch-row gen-head" for="nsfwToggle">
+          <span>
+            <strong>NSFW</strong>
+            <em>Uncensored models.</em>
+          </span>
+          <input id="nsfwToggle" type="checkbox" class="switch">
+        </label>
+        <div class="gen-body" id="nsfwGenBody">
+          <div class="seg gen-mode" id="nsfwModeRow">
+            <button type="button" data-mode="auto" class="on">Auto — best in this pool</button>
+            <button type="button" data-mode="selected">Pick a model</button>
+          </div>
+          <select id="nsfwModelSel" hidden></select>
+        </div>
+        <div id="nsfwNote" class="model-note"></div>
+      </div>
+
+      <div id="genComboNote" class="model-note"></div>
+
+      <div class="field" id="nsfwFrameRow" hidden>
+        <label class="lbl" for="nsfwFrameSel">First frame</label>
+        <select id="nsfwFrameSel">
+          <option value="auto">Auto — undress photo</option>
+          <option value="draw">Draw new person</option>
+          <option value="image">Keep image</option>
+          <option value="given">Use imported as-is</option>
+        </select>
+        <div id="nsfwFrameNote" class="model-note"></div>
+      </div>
+
+      <label class="switch-row" id="undressRow" hidden>
+        <span>
+          <strong>Undress</strong>
+          <em>Undress across beats. More renders.</em>
+        </span>
+        <input id="undressToggle" type="checkbox" class="switch">
+      </label>
+
+      <div class="field">
+        <label class="lbl">Size</label>
+        <div id="aspectRow" class="chips"></div>
+      </div>
+      <div class="field">
+        <label class="lbl">Quality</label>
+        <div class="row-between">
+          <div id="qualityRow" class="seg"></div>
+          <span id="dimsOut" class="mono tiny"></span>
+        </div>
+        <div id="qualityNote" class="model-note"></div>
+      </div>
+
+      <div class="field">
+        <div class="row-between">
+          <label class="lbl" for="durRange" style="margin:0">Duration</label>
+          <select id="durUnitSel" class="tiny-select" title="Duration unit">
+            <option value="s">s</option>
+            <option value="ms">ms</option>
+            <option value="us">µs</option>
+            <option value="ns">ns</option>
+          </select>
+          <div class="dur-readout"><span id="durVal">5</span><span class="unit" id="durUnit">s</span></div>
+        </div>
+        <input id="durRange" class="range" type="range" min="1" max="60" step="1" value="5">
+        <div class="ticks" id="durTicks"><span>1s</span><span>20s</span><span>40s</span><span>60s</span></div>
+        <div id="durHint" class="hint-block"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="fpsSel">FPS</label>
+        <select id="fpsSel">
+          <option value="0">Auto</option>
+          <option value="8">8 fps</option>
+          <option value="12">12 fps</option>
+          <option value="16">16 fps</option>
+          <option value="24">24 fps</option>
+          <option value="30">30 fps</option>
+          <option value="48">48 fps</option>
+          <option value="60">60 fps</option>
+        </select>
+        <div id="fpsNote" class="model-note"></div>
+      </div>
+
+      <details class="fold">
+        <summary>Advanced</summary>
+        <div class="grid2">
+          <div class="field"><label class="lbl" for="seedInput">Seed <span class="hint">random</span></label><input id="seedInput" class="mono" type="text" placeholder="random" inputmode="numeric"></div>
+          <div class="field"><label class="lbl" for="stepsInput">Steps <span class="hint">model default</span></label><input id="stepsInput" class="mono" type="number" min="1" max="30" placeholder="auto"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label class="lbl" for="xfadeRange">Seam blend <span class="hint" id="xfadeVal">0.25s</span></label><input id="xfadeRange" class="range" type="range" min="0" max="0.8" step="0.05" value="0.25"></div>
+          <div class="field"><label class="lbl" for="motionRange">Motion strength <span class="hint" id="motionVal">1.0</span></label><input id="motionRange" class="range" type="range" min="0.2" max="2" step="0.1" value="1"></div>
+        </div>
+        <label class="switch-row compact">
+          <span><strong>Lock seed</strong><em>Reuse last seed.</em></span>
+          <input id="lockSeedToggle" type="checkbox" class="switch">
+        </label>
+        <label class="switch-row compact">
+          <span><strong>Paid in Auto</strong><em>Needs a key.</em></span>
+          <input id="paidToggle" type="checkbox" class="switch">
+        </label>
+      </details>
+
+      <div class="generate-bar">
+        <button id="generateBtn" class="btn btn-primary btn-lg" type="button">
+          <span id="genLabel">Generate video</span>
+        </button>
+        <button id="cancelBtn" class="btn btn-danger btn-lg" type="button" hidden>Stop</button>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT: STAGE ============ -->
+    <section class="panel stage">
+      <div class="panel-head">
+        <h2>Stage</h2>
+        <div id="stageTags" class="tags"></div>
+      </div>
+
+      <div class="screen" id="screen">
+        <video id="outVideo" playsinline loop hidden></video>
+        <img id="outPoster" alt="" hidden>
+        <div id="vidGradeVeil" class="grade-veil" hidden></div>
+        <div id="playerBar" class="player-bar" hidden>
+          <button id="playBtn" class="pbtn" type="button" aria-label="Play"></button>
+          <div class="p-time mono"><span id="timeNow">0:00</span><span class="p-slash">/</span><span id="timeTotal">0:00</span></div>
+          <input id="seekRange" class="p-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek">
+          <div class="p-speed" role="group" aria-label="Playback speed">
+            <button id="speedDown" class="pbtn pbtn-txt" type="button" aria-label="Slower" title="Slower">&#8722;</button>
+            <span id="speedVal" class="p-speed-val mono">x1</span>
+            <button id="speedUp" class="pbtn pbtn-txt" type="button" aria-label="Faster" title="Faster">+</button>
+          </div>
+          <button id="loopBtn" class="pbtn" type="button" aria-label="Loop" title="Loop (L)"></button>
+          <button id="muteBtn" class="pbtn" type="button" aria-label="Mute" title="Mute (M)"></button>
+          <button id="fitBtn" class="pbtn" type="button" aria-label="Fit" title="Fit"></button>
+          <button id="fsBtn" class="pbtn" type="button" aria-label="Fullscreen" title="Fullscreen (F)"></button>
+        </div>
+        <div id="screenPlaceholder" class="screen-ph">
+          <div class="reel" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <strong>Preview</strong>
+          <p>Add an image, describe motion, hit Generate.</p>
+        </div>
+        <div id="screenBusy" class="screen-busy" hidden>
+          <div class="scanline"></div>
+          <div class="busy-box">
+            <div class="busy-label" id="busyStage">uploading</div>
+            <div class="busy-msg" id="busyMsg">Preparing…</div>
+            <div class="bar"><i id="busyBar"></i></div>
+            <div class="busy-meta">
+              <span id="busyProvider" class="mono"></span>
+              <span id="busySeg" class="mono"></span>
+              <span id="busyTime" class="mono"></span>
+            </div>
+            <div id="segDots" class="seg-dots"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="resultNote" class="banner" hidden></div>
+
+      <div id="resultBar" class="result-bar" hidden>
+        <div id="resultInfo" class="mono tiny"></div>
+        <details class="fold grade-fold" id="vidGradeFold">
+          <summary>Color grade <span class="hint" id="vidGradeState">off</span></summary>
+          <div class="grade-body">
+            <div class="row-between">
+              <span class="lbl" style="margin:0">Filter</span>
+              <button id="vgReset" class="btn btn-tiny" type="button" title="Clear the grade">Reset</button>
+            </div>
+            <div id="vgPresetRow" class="chips"></div>
+            <div class="grade-grid">
+              <label class="grade-lbl">Intensity <span class="mono tiny" id="vgIntensityVal">1.00</span><input id="vgIntensity" class="range" type="range" min="0" max="1" step="0.05" value="1"></label>
+              <label class="grade-lbl">Saturation <span class="mono tiny" id="vgSatVal">1.00</span><input id="vgSat" class="range" type="range" min="0" max="2" step="0.05" value="1"></label>
+              <label class="grade-lbl">Light <span class="mono tiny" id="vgLightVal">1.00</span><input id="vgLight" class="range" type="range" min="0.5" max="1.5" step="0.02" value="1"></label>
+              <label class="grade-lbl">Exposure <span class="mono tiny" id="vgExposureVal">0.00</span><input id="vgExposure" class="range" type="range" min="-1" max="1" step="0.05" value="0"></label>
+              <label class="grade-lbl">Contrast <span class="mono tiny" id="vgContrastVal">1.00</span><input id="vgContrast" class="range" type="range" min="0.5" max="1.5" step="0.02" value="1"></label>
+              <label class="grade-lbl">Gamma <span class="mono tiny" id="vgGammaVal">1.00</span><input id="vgGamma" class="range" type="range" min="0.4" max="2.2" step="0.05" value="1"></label>
+              <label class="grade-lbl">Grain <span class="mono tiny" id="vgGrainVal">0.00</span><input id="vgGrain" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+              <label class="grade-lbl">Light leak <span class="mono tiny" id="vgLeakVal">0.00</span><input id="vgLeak" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+              <label class="grade-lbl">Sharpen <span class="mono tiny" id="vgSharpVal">0.00</span><input id="vgSharp" class="range" type="range" min="0" max="1" step="0.05" value="0"></label>
+            </div>
+            <div class="row-between grade-tint">
+              <label class="export-lbl">Overlay <input id="vgTint" type="color" value="#ff9a3c" title="Overlay color"></label>
+              <label class="grade-lbl grade-tint-alpha">Strength <span class="mono tiny" id="vgTintAlphaVal">0.00</span><input id="vgTintAlpha" class="range" type="range" min="0" max="0.6" step="0.02" value="0"></label>
+            </div>
+            <div class="hint-block">Applied on Download.</div>
+          </div>
+        </details>
+        <div class="export-row">
+          <button id="importVidBtn" class="btn btn-tiny" type="button" title="Import a video to upscale and encode directly">⤓ Import video</button>
+          <span class="sticker-bar" id="vidStickerBar" title="Stickers — tap to add, drag to move, scroll to resize, double-click to remove"></span>
+          <label class="export-lbl">Frame
+            <select id="vidFrameSel" class="tiny-select" title="Ready-made frame baked into the download"></select>
+          </label>
+          <label class="export-lbl">Export
+            <select id="vidFormatSel" class="tiny-select" title="Video container / encoder"></select>
+          </label>
+          <label class="export-lbl">Upscale
+            <select id="vidScaleSel" class="tiny-select" title="Upscale factor"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="480p">480p</option><option value="720p">720p</option><option value="1080p">1080p</option></select>
+          </label>
+          <label class="export-lbl">Mode
+            <select id="vidUpscaleModeSel" class="tiny-select" title="Upscale quality"><option value="fast">Fast</option><option value="quality">Quality</option><option value="ai">AI</option></select>
+          </label>
+          <label class="export-lbl">Quality
+            <input id="vidQualityRange" class="range qrange" type="range" min="0.1" max="1" step="0.05" value="0.8" title="Compression — bitrate when re-muxing">
+            <span id="vidQualityVal" class="mono tiny">0.80</span>
+          </label>
+        </div>
+        <div class="result-actions">
+          <button id="downloadBtn" class="btn btn-primary" type="button">Download</button>
+          <button id="saveVidBtn" class="btn btn-ghost" type="button" title="Save this clip to the Library">💾 Save</button>
+          <button id="resumeBtn" class="btn btn-danger" type="button" hidden title="Finish from where the run stopped">Finish this clip</button>
+          <button id="reuseBtn" class="btn btn-ghost" type="button" title="Use the final frame as the next reference image">Continue</button>
+          <button id="againBtn" class="btn btn-ghost" type="button">Retry</button>
+          <button id="shareBtn" class="btn btn-ghost" type="button">Share link</button>
+        </div>
+        <div class="save-meta">
+          <label class="export-lbl">Name <input id="vidNameInput" class="mono" type="text" placeholder="e.g. hero shot" autocomplete="off" style="min-width:130px"></label>
+          <label class="export-lbl">Library <select id="vidLibCatSel" class="tiny-select" title="Library category to save into"></select></label>
+          <label class="export-lbl">Character <input id="vidCharInput" class="mono" type="text" placeholder="optional" autocomplete="off" style="width:90px"></label>
+          <label class="export-lbl">Scene <input id="vidSceneInput" class="mono" type="text" placeholder="optional" autocomplete="off" style="width:90px"></label>
+        </div>
+      </div>
+
+      <div id="stripWrap" class="strip-wrap" hidden>
+        <div class="gallery-bar strip-bar">
+          <span class="lbl">Takes</span>
+          <div id="stripViewRow" class="seg" role="group" aria-label="Filmstrip view size"></div>
+        </div>
+        <div id="filmstrip" class="filmstrip"></div>
+      </div>
+
+      <details class="fold log-fold" open>
+        <summary>Run log</summary>
+        <div class="log-mode-row">
+          <div id="logModeRow" class="seg" role="group" aria-label="Run log detail"></div>
+          <span class="hint">Simple reads like a studio.</span>
+        </div>
+        <div id="logBox" class="logbox mono"></div>
+      </details>
+    </section>
+  </main>
+
+  <main class="layout page page-reader" id="pageReader" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Text Reader</h2>
+        <span class="hint">file → narration</span>
+      </div>
+      <div class="field">
+        <label class="lbl">Source file <span class="hint">txt · md · pdf · docx · images · html · srt · csv</span></label>
+        <div id="readerDropzone" class="dropzone" tabindex="0">
+          <input id="readerFileInput" type="file" accept=".txt,.md,.markdown,.pdf,.docx,.html,.htm,.srt,.vtt,.csv,.tsv,.json,.rtf,.png,.jpg,.jpeg,.webp,.bmp,.gif,text/plain" multiple hidden>
+          <div id="readerDzEmpty" class="dz-empty">
+            <strong>Drop files here</strong>
+            <span>letter scan · PDF · DOCX · photo of text</span>
+          </div>
+          <div id="readerDzFilled" class="dz-filled" hidden>
+            <div class="dz-meta">
+              <span id="readerFileName" class="mono"></span>
+              <span id="readerFileDims" class="mono tiny"></span>
+              <div class="dz-actions">
+                <button id="readerAddBtn" class="btn btn-tiny" type="button">Add more</button>
+                <button id="readerClearBtn" class="btn btn-tiny" type="button">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="row-between">
+          <label class="lbl" for="readerTextInput" style="margin:0">Extracted text <span class="hint">editable</span></label>
+          <span id="readerTextCount" class="mono tiny">0 chars</span>
+        </div>
+        <textarea id="readerTextInput" rows="6" placeholder="Drop a file above — or paste text here directly."></textarea>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="readerModeSel">Narration style</label>
+          <select id="readerModeSel">
+            <option value="cleanup">Clean read — verbatim, fixed up</option>
+            <option value="voiceover">Voiceover — natural spoken rewrite</option>
+            <option value="summary">Summary — key points as narration</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="readerToneSel">Tone</label>
+          <select id="readerToneSel">
+            <option value="neutral">Neutral</option>
+            <option value="warm">Warm</option>
+            <option value="dramatic">Dramatic</option>
+            <option value="calm">Calm</option>
+          </select>
+        </div>
+      </div>
+      <div class="generate-bar">
+        <button id="readerNarrateBtn" class="btn btn-primary btn-lg" type="button"><span id="readerNarrateLabel">Generate narration</span></button>
+        <button id="readerStopBtn" class="btn btn-danger btn-lg" type="button" hidden>Stop</button>
+      </div>
+      <div class="field">
+        <div class="row-between">
+          <label class="lbl" for="readerNarrOut" style="margin:0">Narration</label>
+          <span id="readerNarrCount" class="mono tiny">0 chars</span>
+        </div>
+        <textarea id="readerNarrOut" rows="6" placeholder="The narration script lands here."></textarea>
+        <div class="row-between prompt-row">
+          <span id="readerNarrMeta" class="mono tiny"></span>
+          <button id="readerSendVoiceBtn" class="btn btn-tiny" type="button" title="Copy this narration into the Voice tab script box">→ Send to Voice</button>
+        </div>
+      </div>
+      <div id="readerNote" class="model-note">Everything reads on this device. Only Generate narration sends text to the AI.</div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Documents</h2><div id="readerStageTags" class="tags"></div></div>
+      <div class="screen">
+        <div id="readerDocList" class="reader-docs">
+          <div class="screen-ph"><strong>No documents yet</strong><p>Drop a file to extract its text.</p></div>
+        </div>
+        <div id="readerBusy" class="screen-busy" hidden>
+          <div class="scanline"></div>
+          <div class="busy-box"><div class="busy-label">reading</div><div class="busy-msg" id="readerBusyMsg">Extracting text…</div></div>
+        </div>
+      </div>
+      <details class="fold log-fold" open>
+        <summary>Reading log</summary>
+        <div id="readerLog" class="logbox mono">Ready.</div>
+      </details>
+    </section>
+  </main>
+
+  <main class="layout page page-storyboard" id="pageStoryboard" hidden>
+    <section class="panel studio">
+      <div class="panel-head"><h2>Storyboard Studio</h2><span class="hint">unlimited · auto-save</span></div>
+      <div class="field"><label class="lbl" for="sbProjectSel">Project <span class="hint">switch stories · Library supplies the list</span></label>
+        <div class="sb-namerow"><select id="sbProjectSel" class="mono" title="Switch storyboard project"></select><button id="sbNewBtn" class="btn btn-tiny" type="button" title="Start a new empty story">+ New</button><button id="sbDelBtn" class="btn btn-tiny" type="button" title="Delete this project, its frames and their Library copies (compiled videos are kept)">Delete</button></div>
+      </div>
+      <div class="field"><label class="lbl" for="sbNameInput">Story name</label>
+        <div class="sb-namerow"><input id="sbNameInput" class="mono" value="My Story"><select id="sbCatSel" class="tiny-select" title="Story genre"></select><select id="sbLibCatSel" class="tiny-select" title="Library category frames save into"></select></div>
+        <div class="hint-block">Story name + genre label the frames. Library picks which Library shelf they save to.</div>
+      </div>
+      <div class="field"><label class="lbl" for="sbIdeaInput">Story idea <span class="hint">AI builds scenes from this</span></label>
+        <textarea id="sbIdeaInput" rows="2" placeholder="e.g. a robot learns to paint in old Lisbon…"></textarea>
+        <div class="row-between prompt-row"><span class="hint">Scenes <input id="sbSceneCount" class="mono" type="number" min="1" max="24" value="4" style="width:52px"></span>
+        <span><button id="sbMicIdeaBtn" class="btn btn-tiny" type="button" title="Dictate the idea">🎤</button>
+        <button id="sbBuildBtn" class="btn btn-tiny" type="button" title="Build story scenes with AI">📖 Build story</button></span></div>
+      </div>
+      <div class="field"><label class="lbl" for="sbPromptInput">Image prompt</label>
+        <textarea id="sbPromptInput" rows="2" placeholder="Single-frame prompt, or generates per scene…"></textarea>
+        <div class="row-between prompt-row"><span><button id="sbMicBtn" class="btn btn-tiny" type="button" title="Dictate prompt">🎤 Mic</button>
+        <button id="sbAiPromptBtn" class="btn btn-tiny" type="button" title="Write prompt with AI">✨ AI prompt</button>
+        <button id="sbEnhOneBtn" class="btn btn-tiny" type="button" title="Enhance prompt">✨ Enhance</button></span>
+        <label class="hint"><input id="sbEnhToggle" type="checkbox" checked> auto-enhance</label></div>
+      </div>
+      <details class="fold" id="sbImportFold">
+        <summary>Import into story <span class="hint">cast · scenes · wardrobe · designer</span></summary>
+        <details class="fold sb-sub" open>
+          <summary>Cast <span class="hint" id="sbCastLb"></span></summary>
+          <div id="sbCastList" class="sb-refs"></div>
+          <button id="sbCastAdd" class="btn btn-tiny" type="button">+ Add character</button>
+        </details>
+        <details class="fold sb-sub">
+          <summary>Scenes <span class="hint" id="sbSceneLb"></span></summary>
+          <div id="sbSceneList" class="sb-refs"></div>
+          <button id="sbSceneAdd" class="btn btn-tiny" type="button">+ Add scene</button>
+        </details>
+        <details class="fold sb-sub">
+          <summary>Wardrobe <span class="hint" id="sbWardLb"></span></summary>
+          <div id="sbWardList" class="sb-refs"></div>
+          <button id="sbWardAdd" class="btn btn-tiny" type="button">+ Add outfit</button>
+        </details>
+        <details class="fold sb-sub">
+          <summary>Character designer <span class="hint">prompt builder</span></summary>
+          <div class="sb-dgrid">
+            <label>Gender<select id="sbDGender"></select></label>
+            <label>Age<select id="sbDAge"></select></label>
+            <label>Build<select id="sbDBuild"></select></label>
+            <label>Hair<select id="sbDHair"></select></label>
+            <label>Outfit<select id="sbDOutfit"></select></label>
+            <label>Style<select id="sbDStyle"></select></label>
+            <label>Expression<select id="sbDExpr"></select></label>
+            <label>Save into<select id="sbDSaveSel" class="tiny-select"></select></label>
+          </div>
+          <div id="sbDOut" class="model-note"></div>
+          <div class="row-between prompt-row">
+            <span class="hint">Builds a portrait prompt, generates a frame.</span>
+            <span><button id="sbDUseBtn" class="btn btn-tiny" type="button" title="Copy this prompt into the image prompt box">Use prompt</button>
+            <button id="sbDGenBtn" class="btn btn-tiny btn-primary" type="button" title="Generate this character as a storyboard frame">Generate</button></span>
+          </div>
+        </details>
+        <div class="hint-block">Cast, scenes and outfits import from this computer or the in-app Library, travel with the project, and any of them can join the board as a frame. Outfits can also be written straight into the image prompt.</div>
+      </details>
+      <div class="field"><label class="lbl">Ratio <span class="hint">hover a ratio for format · social-ready</span></label><div id="sbRatioRow" class="chips"></div></div>
+      <div class="field"><label class="lbl">Thumbnails</label><div id="sbViewRow" class="seg"></div></div>
+      <div class="generate-bar">
+        <button id="sbGenBtn" class="btn btn-primary btn-lg" type="button">Generate storyboard</button>
+        <button id="sbTenBtn" class="btn btn-ghost btn-lg" type="button" title="Build a 10-image story in 16:9 using your named Cast, Scene and Wardrobe slots as character lock">★ 10-frame story</button>
+        <button id="sbOneBtn" class="btn btn-ghost btn-lg" type="button" title="Generate one frame from the image prompt">+ 1 frame</button>
+      </div>
+      <div class="field"><div class="row-between"><label class="lbl" style="margin:0">Compile to video</label><span id="sbCount" class="mono tiny">0 frames</span></div>
+        <div class="sb-namerow"><button id="sbImportBtn" class="btn btn-tiny" type="button" title="Import frame images from this computer">⤓ Import</button><select id="sbVidFmtSel" class="tiny-select" title="Video format"></select>
+        <span class="hint">sec/img <input id="sbSecsInput" class="mono" type="number" min="0.3" max="5" step="0.1" value="1.5" style="width:56px" title="Default seconds per scene — each card can override it"></span>
+        <select id="sbTransSel" class="tiny-select" title="Transition between scenes"><option value="cut">Cut</option><option value="x03">Dissolve 0.3s</option><option value="x06">Dissolve 0.6s</option></select>
+        <button id="sbCompileBtn" class="btn btn-tiny btn-primary" type="button">▶ Compile + save</button></div>
+      </div>
+      <div class="row-between prompt-row"><span id="sbToast" class="mono tiny" hidden></span>
+      <span><button id="sbSpeakBtn" class="btn btn-tiny" type="button">🔊 Speak story</button>
+      <button id="sbVoiceBtn" class="btn btn-tiny" type="button" title="Send one narration line per scene to the Voice tab — Generate voice there, export WAV/MP3">🎙 Voiceover</button>
+      <button id="sbNarrateBtn" class="btn btn-tiny" type="button" title="AI-rewrite scenes into spoken narration, then send to Voice">✨ Narrate</button>
+      <button id="sbClearBtn" class="btn btn-tiny" type="button">Clear</button></span></div>
+      <div id="sbBusy" class="model-note" hidden><span id="sbBusyMsg">Painting…</span></div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Board <span class="hint"># numbered · drag to reorder · click to preview</span></h2></div>
+      <div class="screen sb-viewer-wrap"><div id="sbViewer" class="sb-viewer"></div></div>
+      <div class="sticker-bar" id="sbStickerBar" style="margin-top:8px" title="Stickers for the previewed frame"></div>
+      <div id="sbBoard" class="sb-board" data-view="medium"></div>
+      <div class="screen sb-player-wrap" hidden><video id="sbVideoOut" controls playsinline hidden></video></div>
+    </section>
+  </main>
+
+  <main class="layout page page-voice" id="pageVoice" hidden>
+    <div class="voice-subnav seg" id="voiceSubRow" role="tablist" aria-label="Voiceover studios" style="grid-column:1/-1;justify-self:start">
+      <button type="button" data-vsub="maker" class="on" role="tab" aria-selected="true">🎙 1 · Voice Maker</button>
+      <button type="button" data-vsub="camera" role="tab" aria-selected="false">🎥 2 · Camera</button>
+      <button type="button" data-vsub="lipsync" role="tab" aria-selected="false">👄 3 · Lipsync</button>
+    </div>
+    <div id="vsubMaker" class="layout" style="margin-top:10px;grid-column:1/-1">
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Voice Maker</h2>
+        <span class="hint">script → voice → video</span>
+      </div>
+      <div class="field">
+        <label class="lbl" for="voiceTextInput">1 · Script <span class="hint">type, dictate, or import</span></label>
+        <textarea id="voiceTextInput" rows="5" placeholder="Paste narration here — or import a document, pull from Reader, or load the sample…"></textarea>
+        <div class="row-between prompt-row">
+          <span id="voiceCount" class="mono tiny">0 chars</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap">
+            <button id="voiceImportBtn" class="btn btn-tiny" type="button" title="Import script from this computer (txt · md · pdf · docx · images)">⤓ Import</button>
+            <button id="voiceLibBtn" class="btn btn-tiny" type="button" title="Pick a saved script from the Library">Library</button>
+            <button id="voiceReaderBtn" class="btn btn-tiny" type="button" title="Copy the Reader narration into this script box">← Reader</button>
+            <button id="voiceSampleBtn" class="btn btn-tiny" type="button" title="Load the sample letter script">Sample</button>
+          </span>
+        </div>
+        <input id="voiceScriptFile" type="file" accept=".txt,.md,.markdown,.pdf,.docx,.html,.htm,.srt,.vtt,.csv,.rtf,.png,.jpg,.jpeg,.webp,.bmp,.gif,text/plain" hidden>
+      </div>
+      <div class="field">
+        <div class="row-between">
+          <label class="lbl" for="voicePolishBtn" style="margin:0">Prompt <span class="hint">optional AI polish</span></label>
+          <span style="display:flex;gap:6px">
+            <button id="voicePolishBtn" class="btn btn-tiny" type="button" title="Rewrite the script for natural spoken delivery">✨ Polish</button>
+            <button id="vvPlanBtn" class="btn btn-tiny" type="button" title="Turn this script into shot-by-shot visual prompts">✨ Plan scenes</button>
+          </span>
+        </div>
+        <div id="vvShots" class="mono tiny" style="margin-top:6px">No shots yet.</div>
+      </div>
+      <details class="fold">
+        <summary>Negative prompt <span class="hint">words the polish must avoid</span></summary>
+        <textarea id="voiceNegInput" rows="2" placeholder="e.g. blurry, robotic, slang — polish steers around these"></textarea>
+      </details>
+      <div class="field">
+        <label class="lbl" for="voiceSel">2 · Voice <span class="hint">on-device · free</span></label>
+        <select id="voiceSel"><option value="">Default voice</option></select>
+        <div id="vvFinderRow" style="display:flex;gap:6px;align-items:center;margin-top:8px">
+          <input id="vvLangInput" class="mono" type="text" placeholder="find: hindi, bangla, en, es…" style="flex:1;min-width:120px">
+          <button id="vvTestBtn" class="btn btn-tiny" type="button" title="Speak a short test line with this voice + pitch">▶ Test</button>
+          <span id="vvVoiceCount" class="mono tiny"></span>
+        </div>
+        <div id="vvPersonaRow" class="seg" style="margin-top:8px" role="group" aria-label="Voice character">
+          <button type="button" data-p="feminine">Feminine</button>
+          <button type="button" data-p="neutral" class="on">Neutral</button>
+          <button type="button" data-p="masculine">Masculine</button>
+        </div>
+        <div class="hint-block">One Hindi voice exists here, so male/female comes from pitch presets, not the name list. Pick the voice, tap a preset, then ▶ Test.</div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="voiceRateRange">Speed <span class="hint" id="voiceRateVal">1.00×</span></label>
+          <input id="voiceRateRange" class="range" type="range" min="0.5" max="2" step="0.05" value="1">
+        </div>
+        <div class="field">
+          <label class="lbl" for="voicePitchRange">Pitch <span class="hint" id="voicePitchVal">1.00</span></label>
+          <input id="voicePitchRange" class="range" type="range" min="0.5" max="2" step="0.05" value="1">
+        </div>
+      </div>
+      <div class="generate-bar">
+        <button id="voicePlayBtn" class="btn btn-ghost btn-lg" type="button">Speak</button>
+        <button id="voiceStopBtn" class="btn btn-ghost btn-lg" type="button">Stop</button>
+      </div>
+      <div class="field">
+        <label class="lbl">3 · Voiceover track <span class="hint">audio — 2 of 2 for merge</span></label>
+        <div id="vvTrackLine" class="model-note">No voiceover track (audio) yet — record or import one.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <button id="voiceGenBtn" class="btn btn-tiny btn-primary" type="button" title="Render the script to a voiceover track in-app — no mic needed">✨ Generate voice</button>
+          <button id="voiceRecBtn" class="btn btn-tiny" type="button" title="Record narration with the mic">● Narrate (mic)</button>
+          <button id="voiceRecVoiceBtn" class="btn btn-tiny" type="button" title="Speak the script with the chosen voice while recording it into the track">● Rec voice</button>
+          <button id="voiceImpBtn" class="btn btn-tiny" type="button">Import audio</button>
+          <button id="voiceClrBtn" class="btn btn-tiny" type="button">Clear</button>
+        </div>
+        <input id="voiceAudioFile" type="file" accept="audio/*" hidden>
+        <audio id="vvAudioPrev" controls style="width:100%;margin-top:8px" hidden></audio>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center">
+          <label class="lbl" style="margin:0">Export</label>
+          <select id="vvFmtSel" class="tiny-select" title="Audio format"><option value="wav">WAV · lossless</option><option value="mp3">MP3</option><option value="ogg">OGG · Opus</option></select>
+          <select id="vvRateSel" class="tiny-select" title="Bitrate / bit depth"></select>
+          <select id="vvSrSel" class="tiny-select" title="Sample rate"><option value="0">Source Hz</option><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="96000">96 kHz</option></select>
+          <button id="vvExportBtn" class="btn btn-tiny" type="button">Export track</button>
+          <button id="vvSaveBtn" class="btn btn-tiny" type="button" title="Save this track to the Library">💾 Save in-app</button>
+          <span id="vvExpNote" class="mono tiny"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">4 · Timeline clip <span class="hint">video — 1 of 2 for merge</span></label>
+        <div id="vvClipLine" class="model-note">No timeline clip (video) — use the finished clip, import a video, or pick from the library.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <button id="vvUseClipBtn" class="btn btn-tiny" type="button">Use finished clip</button>
+          <button id="vvImpClipBtn" class="btn btn-tiny" type="button">Import video</button>
+          <button id="vvLibClipBtn" class="btn btn-tiny" type="button">From library</button>
+        </div>
+        <input id="vvClipFile" type="file" accept="video/*" hidden>
+        <div id="vvLibGrid" hidden style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center">
+          <label class="lbl" style="margin:0" for="vvContainerSel">Export</label>
+          <select id="vvContainerSel" class="tiny-select" title="Merged video container"></select>
+          <button id="vvMergeBtnV" class="btn btn-primary" type="button" title="Mux the voiceover track onto the timeline clip, on-device">Merge voiceover onto clip</button>
+          <button id="vvDlBtn" class="btn btn-tiny" type="button" hidden>Download merged</button>
+        </div>
+        <span id="vvFmtNote" class="mono tiny"></span>
+      </div>
+      <div id="voiceNote" class="model-note">On-device voice. Generate the track, export audio — or merge it onto a clip below.</div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Viewer</h2><div class="tags"><span class="tag">voice → video</span></div></div>
+      <div class="screen">
+        <video id="vvPreview" controls playsinline style="width:100%;border-radius:8px;background:#000"></video>
+        <canvas id="vvWave" style="width:100%;height:64px;margin-top:8px;background:rgba(255,255,255,.04);border-radius:8px"></canvas>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <span class="mono tiny" id="vvPosLbl" style="min-width:132px">Scrub</span>
+          <input id="vvPos" type="range" min="0" max="10" step="0.1" value="0" style="flex:1">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <span class="mono tiny" id="vvOffsetLbl" style="min-width:132px">Voice starts at</span>
+          <input id="vvOffset" type="range" min="0" max="10" step="0.1" value="0" style="flex:1" title="Delay before the voiceover starts in the merged video.">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <span class="mono tiny" id="vvVolLbl" style="min-width:132px">Voice volume</span>
+          <input id="vvVol" type="range" min="0" max="1.5" step="0.05" value="1" style="flex:1" title="Voiceover loudness in the merged video.">
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button id="vvPreviewBtn" class="btn btn-tiny" type="button">▶ Preview together</button>
+        </div>
+        <div id="vvVerify" class="model-note" style="margin-top:6px">Merge needs BOTH: a timeline clip (video) above + a voiceover track (audio) from the left panel.</div>
+        <div class="screen-ph" id="voicePlaceholder" style="margin-top:8px">
+          <strong>Preview</strong>
+          <p id="voicePreviewText">Type a script, hit Speak.</p>
+        </div>
+      </div>
+      <details class="fold log-fold" open>
+        <summary>Queue</summary>
+        <div id="voiceQueue" class="logbox mono">No lines yet.</div>
+      </details>
+    </section>
+    </div>
+    <div id="vsubCamera" class="layout" style="margin-top:10px;grid-column:1/-1" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Camera</h2>
+        <span class="hint">record · compress · upscale</span>
+      </div>
+      <div id="vvCamHome"></div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Viewer</h2><div class="tags"><span class="tag">camera → library</span></div></div>
+      <div class="screen">
+        <div class="screen-ph">
+          <strong>How it works</strong>
+          <p>1 · Import a voiceover (mp3/audio) on the left. 2 · Press Record take — the voice plays while the camera rolls, so match your lips to it in one take. 3 · Pick a crop (9:16 for TikTok/Reels/Shorts, 1:1 or 4:5 for Instagram, 16:9 for YouTube) + a filter. 4 · Merge → video file → Library or download.</p>
+        </div>
+      </div>
+      <details class="fold log-fold" open>
+        <summary>Camera tips</summary>
+        <div class="logbox mono">Import the voice first — the take records while it plays. Merge lays that clean voiceover under the video (camera mic audio is dropped). Crop cuts before merging; the filter previews live.</div>
+      </details>
+    </section>
+    </div>
+    <div id="vsubLipsync" class="layout" style="margin-top:10px;grid-column:1/-1" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Lipsync</h2>
+        <span class="hint">photo → talking video</span>
+      </div>
+      <div class="field">
+        <label class="lbl">1 · Face <span class="hint">photo or video · computer or Library</span></label>
+        <div id="pvPhotoLine" class="model-note">No background yet — import a photo or a video (mp4, webm, mov…).</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <button id="pvPickBtn" type="button" class="btn btn-tiny">⤓ Import photo / video</button>
+          <button id="pvLibBtn" type="button" class="btn btn-tiny" title="Pick a face from the Library">Library</button>
+          <button id="pvSampleBtn" type="button" class="btn btn-tiny">Use sample letter</button>
+        </div>
+        <input id="pvFile" type="file" accept="image/*,video/*,.mp4,.m4v,.mov,.webm,.mkv,.avi,.png,.jpg,.jpeg,.webp,.gif,.bmp" hidden>
+        <label class="switch-row compact" style="margin-top:8px"><span><strong>Talking mouth</strong><em>Photo mouth moves with the voice</em></span><input id="pvTalkToggle" type="checkbox" class="switch" checked></label>
+      </div>
+      <div class="field">
+        <label class="lbl" for="pvVoiceSrcSel">2 · Voiceover source</label>
+        <div class="key-row"><select id="pvVoiceSrcSel"><option value="tts">Generated voice (from Maker script)</option><option value="track">Voice Maker track</option><option value="file">Audio file (mp3 / wav / ogg)</option></select>
+        <button id="pvAudioBtn" type="button" class="btn btn-tiny" hidden>Import audio…</button></div>
+        <input id="pvAudioFile" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" hidden>
+        <div id="pvAudioLine" class="model-note">Voiceover: Maker script, or import an mp3/wav.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <button id="pvScriptBtn" type="button" class="btn btn-tiny" title="Copy the Maker script here">← Use Maker script</button>
+          <button id="pvScriptFileBtn" type="button" class="btn btn-tiny" title="Load the script from a file: txt, Word, PDF…">Script from file…</button>
+        </div>
+        <input id="pvScriptFile" type="file" accept=".txt,.md,.pdf,.docx,.html,.srt,.vtt,.csv,.rtf,text/plain" hidden>
+      </div>
+      <div class="generate-bar">
+        <button id="pvRenderBtn" type="button" class="btn btn-primary btn-lg">Render lipsync → video</button>
+        <button id="pvDlBtn" type="button" class="btn btn-tiny" hidden>Download</button>
+      </div>
+      <div id="pvStatus" class="model-note" style="margin-top:6px">Background on screen + voiceover on track → MP4 (WebM where MP4 isn't supported). Nothing is recorded.</div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Viewer</h2><div class="tags"><span class="tag">face + voice</span></div></div>
+      <div class="screen">
+        <img id="pvPreviewImg" hidden style="width:100%;border-radius:8px;margin-top:8px" alt="background photo">
+        <video id="pvPreviewVid" controls muted playsinline hidden style="width:100%;border-radius:8px;margin-top:8px;background:#000"></video>
+        <video id="pvVideo" controls playsinline style="width:100%;border-radius:8px;margin-top:8px;background:#000"></video>
+      </div>
+      <details class="fold log-fold" open>
+        <summary>Lipsync log</summary>
+        <div id="pvLog" class="logbox mono">Ready.</div>
+      </details>
+    </section>
+    </div>
+  </main>
+
+  <main class="layout page page-editor" id="pageEditor" hidden>
+  <div class="pp-root" data-ws="editing">
+    <div class="pp-menubar">
+      <div class="pp-menus">
+        <span class="pp-logo">E</span>
+        <button type="button" data-menu="file">File</button>
+        <button type="button" data-menu="edit">Edit</button>
+        <button type="button" data-menu="clip">Clip</button>
+        <button type="button" data-menu="seq">Sequence</button>
+        <button type="button" data-menu="marker">Marker</button>
+        <button type="button" data-menu="graphics">Graphics</button>
+        <button type="button" data-menu="view">View</button>
+        <button type="button" data-menu="window">Window</button>
+        <button type="button" data-menu="help">Help</button>
+      </div>
+      <div class="pp-ws" id="ppWsTabs" role="tablist" aria-label="Workspaces">
+        <button type="button" data-ws="assembly" role="tab">Assembly</button>
+        <button type="button" data-ws="editing" role="tab" class="on">Editing</button>
+        <button type="button" data-ws="color" role="tab">Color</button>
+        <button type="button" data-ws="effects" role="tab">Effects</button>
+        <button type="button" data-ws="audio" role="tab">Audio</button>
+        <button type="button" data-ws="export" role="tab">Export</button>
+        <button type="button" id="edAgentBtn" class="pp-btn pp-accent" title="AI edit agent — describe the edit in words">✨ AI Agent</button>
+      </div>
+    </div>
+
+    <div class="pp-top">
+      <section class="pp-panel pp-project">
+        <div class="pp-ptabs">
+          <button type="button" class="on" data-ptab="project">Project</button>
+          <button type="button" data-ptab="media">Media Browser</button>
+          <button type="button" data-ptab="library">Library</button>
+        </div>
+        <div class="pp-ptools">
+          <input id="ppProjSearch" class="mono" type="search" placeholder="Search bin…">
+          <button id="ppImportBtn" class="pp-btn" type="button" title="Import files from this computer">Import</button>
+          <button id="ppImportLibBtn" class="pp-btn" type="button" title="Pick from the built-in library">Library</button>
+        </div>
+        <div data-ppane="project">
+          <div id="edDrop" class="dropzone pp-drop" tabindex="0">
+            <input id="edFileInput" type="file" accept="video/*,image/*,audio/*" multiple hidden>
+            <div class="dz-empty"><strong>Drop clips here</strong><span>or click Import · double-click adds to V1</span></div>
+          </div>
+          <div class="pp-binbar">
+            <button id="edPullBtn" class="pp-btn" type="button" title="Pull the latest Video studio result and Image studio result onto the bin">⬇ Studios</button>
+            <button id="edClearBinBtn" class="pp-btn" type="button">Clear</button>
+            <span id="edAddNote" class="pp-note">Pick a bin item, then insert.</span>
+          </div>
+          <div class="pp-viewbar">
+            <div class="pp-viewbtns" data-viewfor="edBin">
+              <button type="button" data-view="small" title="Small icons">Small</button>
+              <button type="button" data-view="medium" title="Medium icons">Med</button>
+              <button type="button" data-view="large" title="Large icons">Large</button>
+              <button type="button" data-view="details" title="Details list">Details</button>
+              <button type="button" data-view="grid" title="Adjustable grid - drag the slider">Grid</button>
+            </div>
+            <input id="ppBinSize" class="pp-size" type="range" min="48" max="160" step="4" value="80" title="Grid thumbnail size">
+          </div>
+          <div id="edBin" class="pp-bin" data-view="medium"></div>
+        </div>
+                <div data-ppane="media" hidden>
+          <div class="pp-ptools">
+            <input id="ppMediaSearch" class="mono" type="search" placeholder="Search media...">
+            <select id="ppMediaKind" class="tiny-select" title="Media type">
+              <option value="">All types</option>
+              <option value="video">Video</option>
+              <option value="image">Images</option>
+              <option value="audio">Audio</option>
+            </select>
+          </div>
+          <div class="pp-binbar">
+            <button id="ppBrowseBtn" class="pp-btn" type="button" title="Browse files on this computer">Browse local...</button>
+            <button id="ppMediaRefreshBtn" class="pp-btn" type="button" title="Reload the built-in library">Refresh</button>
+          </div>
+          <div class="pp-viewbar">
+            <div class="pp-viewbtns" data-viewfor="ppMediaList">
+              <button type="button" data-view="small" title="Small icons">Small</button>
+              <button type="button" data-view="medium" title="Medium icons">Med</button>
+              <button type="button" data-view="large" title="Large icons">Large</button>
+              <button type="button" data-view="details" title="Details list">Details</button>
+              <button type="button" data-view="grid" title="Adjustable grid - drag the slider">Grid</button>
+            </div>
+            <input id="ppMediaSize" class="pp-size" type="range" min="48" max="160" step="4" value="80" title="Grid thumbnail size">
+          </div>
+          <div id="ppMediaList" class="pp-liblist" data-view="medium"><div class="pp-note" style="padding:10px">Loading media...</div></div>
+          <div class="pp-note" style="padding:8px 2px">Media Browser reads the built-in library; Browse local reaches this computer. Both land in the bin - double-click imports straight to V1.</div>
+        </div>
+
+        <div data-ppane="library" hidden>
+          <div class="pp-ptools">
+            <input id="ppLibSearch" class="mono" type="search" placeholder="Search library…">
+            <button id="ppLibRefreshBtn" class="pp-btn" type="button">Refresh</button>
+          </div>
+          <div class="pp-viewbar">
+            <div class="pp-viewbtns" data-viewfor="ppLibList">
+              <button type="button" data-view="small" title="Small icons">Small</button>
+              <button type="button" data-view="medium" title="Medium icons">Med</button>
+              <button type="button" data-view="large" title="Large icons">Large</button>
+              <button type="button" data-view="details" title="Details list">Details</button>
+              <button type="button" data-view="grid" title="Adjustable grid - drag the slider">Grid</button>
+            </div>
+            <input id="ppLibSize" class="pp-size" type="range" min="48" max="160" step="4" value="80" title="Grid thumbnail size">
+          </div>
+          <div id="ppLibList" class="pp-liblist" data-view="medium"><div class="pp-note" style="padding:10px">Loading library…</div></div>
+          <div class="pp-note" style="padding:8px 10px">Library = everything saved from Video + Image studios. Import drops a copy into the bin.</div>
+        </div>
+      </section>
+
+      <section class="pp-panel pp-source">
+        <div class="pp-monhead"><span>Source: <b id="ppSrcName">no clip</b></span><span id="ppSrcTc" class="mono pp-tc">00:00:00:00</span></div>
+        <div class="pp-screen"><canvas id="ppSourceCanvas" width="480" height="270"></canvas></div>
+        <div class="pp-transport">
+          <button id="ppSrcInBtn" class="pp-btn" type="button" title="Preview from start">|◀</button>
+          <button id="ppSourcePlayBtn" class="pp-btn pp-play" type="button">▶</button>
+          <button id="ppSrcOutBtn" class="pp-btn" type="button" title="Preview to end">▶|</button>
+          <button id="ppSrcInsertBtn" class="pp-btn pp-accent" type="button" title="Insert source on V1 at the playhead">Insert</button>
+        </div>
+      </section>
+
+      <section class="pp-panel pp-program">
+        <div class="pp-monhead"><span>Program: <b id="ppSeqName">Sequence 01</b></span><span class="mono pp-tc"><span id="edTimeTag">0.0 / 0.0s</span></span></div>
+        <div class="pp-screen"><canvas id="edCanvas" width="960" height="540"></canvas></div>
+        <div class="pp-transport">
+          <button id="ppPrevBtn" class="pp-btn" type="button" title="Step back 1 frame">⏮</button>
+          <button id="edPlayBtn" class="pp-btn pp-play" type="button">Play</button>
+          <button id="edStopBtn" class="pp-btn" type="button">Stop</button>
+          <button id="ppNextBtn" class="pp-btn" type="button" title="Step forward 1 frame">⏭</button>
+          <button id="edLoopBtn" class="pp-btn" type="button" title="Loop the preview">Loop: on</button>
+          <span id="edPlayState" class="mono pp-state">paused</span>
+          <span class="pp-res">Ratio <span id="edRatioRow" class="chips pp-chips"></span></span>
+        </div>
+      </section>
+
+      <aside class="pp-panel pp-ec">
+        <div class="pp-ptabs" id="ppEcTabs">
+          <button type="button" class="on" data-ec="controls">Effect Controls</button>
+          <button type="button" data-ec="color">Lumetri</button>
+          <button type="button" data-ec="effects">Effects</button>
+          <button type="button" data-ec="audio">Audio</button>
+          <button type="button" data-ec="export">Export</button>
+        </div>
+        <div class="pp-ecbody">
+          <div data-ecpane="controls">
+            <div class="pp-note" id="edSelName">nothing selected</div>
+            <div id="edNoSel" class="pp-note">Click a clip on the timeline.</div>
+            <div id="edInspector" hidden>
+              <div class="ed-insp-grid">
+                <label class="lbl full">Name<input id="edName" class="mono" type="text"></label>
+                <label class="lbl">Start (s)<input id="edStart" class="mono" type="number" min="0" step="0.1"></label>
+                <label class="lbl">Length (s)<input id="edDur" class="mono" type="number" min="0.1" step="0.1"></label>
+                <label class="lbl">Source in (s)<input id="edIn" class="mono" type="number" min="0" step="0.1"></label>
+                <label class="lbl">Speed<input id="edSpeed" class="mono" type="number" min="0.25" max="4" step="0.05"></label>
+                <label class="lbl">Volume<input id="edVol" class="mono" type="number" min="0" max="1" step="0.05"></label>
+                <label class="lbl">Overlay<input id="edPipSel" type="text" list="edPipList" class="mono"></label>
+                <datalist id="edPipList"><option value="full"></option><option value="pip"></option></datalist>
+                <label class="lbl">Filter<select id="edFilterSel"></select></label>
+                <label class="lbl">Grade<select id="edGradeSel"></select></label>
+                <label class="lbl">Grade strength <span class="hint" id="edGradeKVal">1.00</span><input id="edGradeK" class="range" type="range" min="0" max="1" step="0.05" value="1"></label>
+                <label class="lbl">Transition in<select id="edTrInSel"></select></label>
+                <label class="lbl">Transition out<select id="edTrOutSel"></select></label>
+                <label class="lbl">Transition (s)<input id="edTrDur" class="mono" type="number" min="0" max="3" step="0.1"></label>
+              </div>
+              <div id="edTextBox" class="ed-insp-grid" style="margin-top:8px" hidden>
+                <label class="lbl full">Caption<textarea id="edText" rows="2" placeholder="Write text…"></textarea></label>
+                <label class="lbl">Font<select id="edFontSel"></select></label>
+                <label class="lbl">Size<input id="edFontSize" class="mono" type="number" min="12" max="220" step="2"></label>
+                <label class="lbl">Color<input id="edFontColor" type="color" value="#ffffff"></label>
+                <label class="lbl">Position<select id="edTextPosSel"><option value="top">Top</option><option value="center">Center</option><option value="bottom" selected>Bottom</option></select></label>
+                <label class="lbl">Animation<select id="edTextAnimSel"><option value="none">None</option><option value="fade">Fade</option><option value="rise">Rise</option></select></label>
+              </div>
+              <div class="ed-add-row" style="margin-top:8px">
+                <button id="edSplitBtn2" class="pp-btn" type="button">Split here</button>
+                <button id="edDupBtn" class="pp-btn" type="button">Duplicate</button>
+                <button id="edDelBtn" class="pp-btn" type="button">Delete</button>
+              </div>
+            </div>
+          </div>
+          <div data-ecpane="color" hidden>
+            <div class="pp-note">Same grade engine, Lumetri-style layout — edits the selected timeline clip.</div>
+            <label class="lbl">Look<select id="ppLookSel"></select></label>
+            <label class="lbl">Filter<select id="ppFilterSel"></select></label>
+            <label class="lbl">Strength <span class="mono tiny" id="ppStrengthVal">1.00</span><input id="ppStrength" class="range" type="range" min="0" max="1" step="0.05" value="1"></label>
+          </div>
+          <div data-ecpane="effects" hidden>
+            <div class="pp-note">Click to apply to the selected clip.</div>
+            <div class="pp-fxgrid" id="ppFxGrid"></div>
+          </div>
+          <div data-ecpane="audio" hidden>
+            <div class="pp-note">Clip volume + quick fade. Select an A1/A2 clip first.</div>
+            <label class="lbl">Volume<input id="ppAudioVol" class="mono" type="number" min="0" max="1" step="0.05" value="1"></label>
+            <label class="lbl">Fade (s)<input id="ppAudioFade" class="mono" type="number" min="0" max="3" step="0.1" value="0.4"></label>
+            <button id="ppAudioApply" class="pp-btn" type="button">Apply fade in/out</button>
+          </div>
+          <div data-ecpane="export" hidden>
+            <label class="lbl">Range <span class="hint">full or custom</span></label>
+            <div class="ed-insp-grid">
+              <label class="lbl"><span>From (s) <button id="edRangeStartHere" class="pp-btn" type="button">here</button></span><input id="edRangeStart" class="mono" type="number" min="0" step="0.1" value="0"></label>
+              <label class="lbl"><span>To (s) <button id="edRangeEndHere" class="pp-btn" type="button">here</button></span><input id="edRangeEnd" class="mono" type="number" min="0" step="0.1" value="0"></label>
+            </div>
+            <label class="switch-row compact" style="margin-top:6px"><span><strong>Full timeline</strong></span><input id="edFullToggle" type="checkbox" class="switch" checked></label>
+            <div class="ed-formats">
+              <label>Run on<select id="edComputeSel" class="tiny-select"><option value="device">This machine · free · now</option><option value="server">My GPU server · free · mine</option></select></label>
+              <label>Format<select id="edFormatSel" class="tiny-select"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9/VP8)</option><option value="mov">MOV (H.264)</option><option value="mkv">MKV (VP9)</option><option value="gif">GIF (animated)</option><option value="apng">APNG (animated)</option></select></label>
+              <label>Encoder<select id="edEncoderSel" class="tiny-select"></select></label>
+              <label>FPS<select id="edFpsSel" class="tiny-select"><option value="24">24</option><option value="30" selected>30</option><option value="60">60</option></select></label>
+              <label>Quality<input id="edQuality" class="range qrange" type="range" min="0.2" max="1" step="0.05" value="0.8"><span id="edQualityVal" class="mono tiny">0.80</span></label>
+            </div>
+            <div class="generate-bar" style="margin-top:8px">
+              <button id="edExportBtn" class="btn btn-primary btn-lg" type="button"><span id="edExportLbl">Export video</span></button>
+              <button id="edExportCancelBtn" class="btn btn-danger btn-lg" type="button" hidden>Stop</button>
+            </div>
+            <div id="edExportNote" class="pp-note">Renders on this machine in this tab — nothing is uploaded. Keep the tab visible.</div>
+            <button id="edEdlBtn" class="pp-btn" type="button">Download EDL (JSON)</button>
+            <a id="edDownloadLink" hidden></a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="pp-tlpanel">
+      <div class="pp-tlbar">
+        <span class="pp-seqmono mono" id="ppSeqTc">00:00:00:00</span>
+        <div class="pp-tools" id="ppToolRow" role="toolbar" aria-label="Timeline tools">
+          <button type="button" data-tool="select" class="on" title="Selection (V)">➤</button>
+          <button type="button" data-tool="razor" title="Razor — click a clip to split (C)">✂</button>
+          <button type="button" data-tool="hand" title="Hand — drag to scroll (H)">✋</button>
+          <button type="button" data-tool="zoom" title="Zoom — click to zoom in, Alt-click out (Z)">🔍</button>
+        </div>
+        <button id="ppSnapBtn" class="pp-btn on" type="button" title="Snapping">🧲 Snap</button>
+        <button id="edSplitBtn" class="pp-btn" type="button" title="Split the selected clip (or the topmost clip under the playhead) at the playhead">Split (S)</button>
+        <button id="edMergeBtn" class="pp-btn" type="button" title="Join the selected clips on one track end-to-end, no gaps">Merge</button>
+        <button id="edMarkInBtn" class="pp-btn" type="button" title="Trim the selected clip so it starts at the playhead">Trim ◀</button>
+        <button id="edMarkOutBtn" class="pp-btn" type="button" title="Trim the selected clip so it ends at the playhead">Trim ▶</button>
+        <span class="pp-addrow">
+          <button id="edAddV1Btn" class="pp-btn" type="button">+ V1</button>
+          <button id="edAddV2Btn" class="pp-btn" type="button">+ V2</button>
+          <button id="edAddTxtBtn" class="pp-btn" type="button">+ Text</button>
+          <button id="edAddA1Btn" class="pp-btn" type="button">+ A1</button>
+        </span>
+        <span class="pp-zoom">
+          <button id="edZoomOutBtn" class="pp-btn" type="button">−</button>
+          <input id="ppZoomRange" type="range" min="10" max="240" step="2" value="60" title="Timeline zoom">
+          <button id="edZoomInBtn" class="pp-btn" type="button">+</button>
+          <button id="ppFitBtn" class="pp-btn" type="button" title="Fit sequence in view">Fit</button>
+          <span class="hint mono" id="edZoomLbl">60 px/s</span>
+        </span>
+      </div>
+      <div class="ed-timeline pp-tl" id="edTimeline">
+        <div class="pp-tlbody">
+          <div class="pp-heads" id="ppHeads"></div>
+          <div class="pp-scroll" id="edTlScroll">
+            <div class="pp-content" id="ppContent">
+              <div class="ed-ruler" id="edRuler" title="Click or drag to scrub · Ctrl/Alt+wheel zooms at cursor"></div>
+              <div id="edLanes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pp-tlfoot mono">Wheel = scroll · Ctrl/Alt+wheel or slider = zoom at cursor · drag clip = move · edges = trim · double-click bin = add to V1 · S = split · Space = play</div>
+      <div id="edLog" class="logbox mono pp-log">Editor ready. Drop media in the bin to begin.</div>
+    </div>
+  </div>
+  <div id="edAgentOverlay" class="ed-agent-overlay" hidden>
+    <aside id="edAgentPanel" class="ed-agent-panel" role="dialog" aria-modal="false" aria-label="Editor AI agent">
+      <div class="ed-agent-head">
+        <strong>✨ Edit Agent</strong>
+        <span class="pp-note">editor only</span>
+        <button id="edAgentClose" class="pp-btn" type="button" title="Close panel">×</button>
+      </div>
+      <div class="ed-agent-body">
+        <label class="lbl">Apply to
+          <select id="edAgentTarget">
+            <option value="selected">Selected clip</option>
+            <option value="track">Selected clip's track</option>
+            <option value="videos">All video clips (V1+V2)</option>
+            <option value="all">Every clip</option>
+          </select>
+        </label>
+        <label class="lbl">Your prompt
+          <textarea id="edAgentPrompt" rows="3" placeholder="e.g. make it warm and cinematic, slow it down a touch, fade in and out"></textarea>
+        </label>
+        <button id="edAgentEnhance" class="pp-btn" type="button" title="AI rewrites your prompt into precise edit directives">✨ Enhance prompt</button>
+        <label class="lbl">Enhanced prompt <span class="hint">editable — run either one</span>
+          <textarea id="edAgentEnhanced" rows="3" placeholder="The AI-enhanced version lands here."></textarea>
+        </label>
+        <div class="ed-agent-userow" role="radiogroup" aria-label="Which prompt to run">
+          <label><input type="radio" name="edAgentUse" value="original" checked> Use original</label>
+          <label><input type="radio" name="edAgentUse" value="enhanced"> Use enhanced</label>
+        </div>
+        <div class="ed-agent-runrow">
+          <button id="edAgentRun" class="pp-btn pp-accent" type="button">▶ Run agent</button>
+          <button id="edAgentStop" class="pp-btn" type="button" hidden>Stop</button>
+        </div>
+        <div id="edAgentLog" class="logbox mono pp-log ed-agent-log">Describe an edit, optionally enhance, then run.</div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+
+  <main class="layout page" id="pageFeedback" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Suggest &amp; feedback</h2>
+        <span class="hint">public wall</span>
+      </div>
+      <p class="muted small">Tell us what to build next, what broke, or what confused you. Everyone can read this wall.</p>
+      <div class="field">
+        <label class="lbl" for="fbCatSel">Category</label>
+        <select id="fbCatSel">
+          <option value="idea">Feature idea</option>
+          <option value="bug">Bug report</option>
+          <option value="confusing">Confusing UI</option>
+          <option value="model">Model / quality</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl" for="fbNickInput">Name <span class="hint">optional</span></label>
+        <input id="fbNickInput" class="mono" type="text" placeholder="e.g. night-owl" autocomplete="off" maxlength="30">
+      </div>
+      <div class="field">
+        <label class="lbl" for="fbTextInput">Suggestion</label>
+        <textarea id="fbTextInput" rows="5" placeholder="What should we build or fix? Be specific — which page, what happened, what you expected."></textarea>
+      </div>
+      <div class="generate-bar">
+        <button id="fbSendBtn" class="btn btn-primary btn-lg" type="button">Send suggestion</button>
+      </div>
+      <div id="fbNote" class="model-note"></div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Community wall</h2><span class="hint">newest first</span></div>
+      <div id="fbBox">Loading suggestions…</div>
+      <div class="vote-card">
+        <strong>Vote for this app</strong>
+        <span class="hint">one tap per feeling — saved on this device</span>
+        <div class="vote-row">
+          <button id="voteLoveBtn" class="vote-btn" type="button" title="Love it">❤️ <span id="voteLoveCount" class="mono">0</span></button>
+          <button id="voteLikeBtn" class="vote-btn" type="button" title="Like it">👍 <span id="voteLikeCount" class="mono">0</span></button>
+        </div>
+        <p class="vote-bottom muted small">Thanks for voting — the most loved direction gets built first.</p>
+      </div>
+    </section>
+  </main>
+
+  <main class="layout page" id="pageTutorial" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>Tutorial</h2>
+        <span class="hint">start here</span>
+      </div>
+      <div class="tut-nav">
+        <button type="button" data-goto="pageTutorial" data-anchor="tutStart">Start here</button>
+        <button type="button" data-goto="pageChat">AI Chat</button>
+        <button type="button" data-goto="pageImage">Image</button>
+        <button type="button" data-goto="pageVideo">Video</button>
+        <button type="button" data-goto="pageReader">Reader</button>
+        <button type="button" data-goto="pageStoryboard">Storyboard</button>
+        <button type="button" data-goto="pageVoice">Voiceover</button>
+        <button type="button" data-goto="pageEditor">Editor beta testing</button>
+        <button type="button" data-goto="pageFeedback">Feedback</button>
+        <button type="button" data-goto="pageTutorial" data-anchor="tutRoadmap">Roadmap</button>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <button type="button" class="btn btn-ghost btn-tiny" data-hovertoggle>Hover tips: OFF</button>
+        <button type="button" class="btn btn-ghost btn-tiny" id="tutReplayBtn">Replay intro</button>
+      </div>
+      <p class="muted small">Turn hover tips on, then move your cursor over any button or box — a tutor card explains it. The <strong>?</strong> button (bottom-right, on every page) asks the AI anything.</p>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>How to use this app</h2><span class="hint">with AI tutor</span></div>
+      <div class="tut-sec" id="tutStart">
+        <h3>1 · New here? Do this first (2 minutes)</h3>
+        <ol>
+          <li>Open <code>AI Chat</code> and ask anything — this checks you are online and shows how answers stream.</li>
+          <li>Open <code>Image</code>, type <code>a red fox in snow, cinematic light</code>, hit <strong>Generate image</strong>.</li>
+          <li>Press <strong>→ Video</strong> under the result, add <code>the fox lifts its head and looks around</code>, hit <strong>Generate video</strong>.</li>
+          <li>Stuck anywhere? Hit <strong>?</strong> bottom-right and ask in plain words.</li>
+        </ol>
+      </div>
+      <div class="tut-sec">
+        <h3>2 · AI Chat</h3>
+        <ul>
+          <li>Pick a model, type, <code>Enter</code> sends (<code>Shift+Enter</code> = new line).</li>
+          <li>Select any reply text → popup sends it to Image / Video / Voice.</li>
+          <li>Chats save on this device; search them from the left list.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>3 · Image Studio</h3>
+        <ul>
+          <li><code>Text</code> mode draws from words; <code>Edit</code> mode repaints your uploaded picture.</li>
+          <li>Short prompt + <strong>Auto-enhance</strong> beats a long prompt you write by hand.</li>
+          <li>Result bar: <code>Color grade</code> → <code>Upscale</code> → <code>Format</code> → <strong>Download</strong>.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>4 · Video Studio (the main event)</h3>
+        <ol>
+          <li>Drop a starter image (or video frame via scrub + <code>Use this frame</code>).</li>
+          <li>Describe the <strong>motion</strong>: who moves, how, and the camera (<code>slow push-in</code>).</li>
+          <li>Pick <code>Auto</code> model first. Manual pick only if Auto stalls.</li>
+          <li>Keep the <code>Run log</code> on <strong>Simple</strong> unless debugging.</li>
+          <li>Nothing free available? The on-device rig still renders a camera move.</li>
+        </ol>
+      </div>
+      <div class="tut-sec">
+        <h3>5 · Reader → Voiceover</h3>
+        <ul>
+          <li>Reader: drop PDF / DOCX / photo of text → text extracts <strong>on-device</strong> → <strong>Generate narration</strong> → <strong>Send to Voice</strong>.</li>
+          <li>Voiceover: paste script, pick voice, <strong>Speak</strong>, export WAV / MP3 / OGG below. 🎤 Dictate types by voice.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>6 · Storyboard Studio</h3>
+        <ul>
+          <li>Type a story idea, set scene count, hit <strong>📖 Build story</strong> — AI splits it into scenes.</li>
+          <li>Hit <strong>Generate storyboard</strong> for all frames, or <strong>+ 1 frame</strong> for one. Click a card to preview, drag to reorder.</li>
+          <li>Switch stories with the <strong>Project</strong> dropdown (+ New / Delete) — everything auto-saves.</li>
+          <li><strong>▶ Compile + save</strong> turns frames into video (WEBM/MP4/MOV/MKV/GIF) and saves it to the Library.</li>
+          <li><strong>🎙 Voiceover</strong> sends one narration line per scene to the Voice tab; <strong>✨ Narrate</strong> rewrites scenes into spoken narration first.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>7 · Editor</h3>
+        <ul>
+          <li><code>⬇ Studios</code> pulls your latest Video + Image results into the bin.</li>
+          <li>Double-click a bin item = add to V1. Drag = move, edges = trim, <code>S</code> = split, <code>Space</code> = play.</li>
+          <li><strong>Export video</strong> renders on this machine — keep the tab visible.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>8 · Settings &amp; privacy (read once)</h3>
+        <ul>
+          <li><code>Where the rendering happens</code>: your own GPU server first (free Colab), free pool next, this device last.</li>
+          <li>The free pool is metered <strong>per address</strong> — address rotation is what keeps it going.</li>
+          <li><code>Library is encrypted on-device</code> covers this browser's storage, not third-party servers.</li>
+        </ul>
+      </div>
+      <div class="tut-sec">
+        <h3>9 · Feedback &amp; Library</h3>
+        <ul>
+          <li><strong>💬 Feedback</strong> (top-right): pick a category, write it, Send — top-voted items get built first.</li>
+          <li><strong>Library</strong> (topbar): every finished clip / image / story / narration, saved on this device. Search, filter, tap to reuse.</li>
+        </ul>
+      </div>
+      <div class="tut-sec" id="tutRoadmap">
+        <h3>Roadmap — what ships next, in order</h3>
+        <ol class="roadmap-list">
+          <li><strong>Seam concealer on every face-lock</strong> — the blended face passes a rim-smoothing pass before delivery (also standalone for upscales): no visible patch edge in img2img or enlarged results.</li>
+          <li><strong>Pose variants (same face, new angles)</strong> — Image Edit mode now offers ¾ left/right, profile, smile, laugh and look-up chips; one click generates the pose set face-locked with a head-pose + accuracy readout per pose in the run log.</li>
+          <li><strong>Face lock P1 in Image edits</strong> — edit mode now blends the reference face back onto each result (feathered, strength 0.85) and prints a face-accuracy score per variation in the run log; storyboard board thumbnails lazy-load for 50+ frame stories, and wardrobe/scene tokens are quoted exact-match in every prompt.</li>
+          <li><strong>Face-locked image-to-image P1 — browser face blend</strong> — krumppy's design (`src/FACELOCK.md`): reference face blended back into every edit with a feathered mask + accuracy score in the run log. Works with any route, own model included. Building next.</li>
+          <li><strong>Face-locked image-to-image P2 — server SD1.5 img2img</strong> — own-GPU img2img endpoint with strength/guidance/face-lock weight, free Colab OK.</li>
+          <li><strong>Face-locked image-to-image P3 — per-person LoRA</strong> — 3–5 photos → identity LoRA on your Colab, attached automatically.</li>
+          <li><strong>Image-to-image with face track (training live with krumppy)</strong> — new frames driven from a tracked reference face, re-attached every frame for stronger likeness; built and tuned live in this app.</li>
+          <li><strong>Lipsync model</strong> — face-tracked talking heads from voiceover audio, right after face track lands.</li>
+          <li><strong>Own low-end image-to-video model</strong> — small on-device / own-GPU video from stills, built and trained step by step here.</li>
+          <li><strong>Opt-in community compute pool (Phase 1 shipped)</strong> — strictly voluntary: Settings → Where the rendering happens → Own pool. Small tasks (upscale, encode, storyboard merge) run on this device and report live CPU/WebGL status; larger models need 5+ devices, so a short pool openly fails with: own pool failed — not enough free devices online. Multi-device sharing waits on a coordinator server.</li>
+          <li><strong>Feedback-driven fixes</strong> — top-voted wall items first.</li>
+          <li><strong>Qwen-Image-2.1 hardening</strong> — the free demo is often queue-full, so next is smarter retries, clearer busy states, and optionally a self-hosted entry on your own GPU.</li>
+          <li><strong>Video-to-video conditioning</strong> — pass a source clip as motion reference (needs the video-input path).</li>
+          <li><strong>Server model expansion</strong> — verify Hunyuan entries on a real GPU.</li>
+          <li><strong>Local provenance</strong> — model id + timestamp in export filenames.</li>
+          <li><strong>Saved tutor answers</strong> — pin good AI answers into this tutorial.</li>
+        </ol>
+        <h3>Recently shipped</h3>
+        <ol class="roadmap-list">
+          <li><strong>Face-lock design saved + SDXL edit routes listed</strong> — krumppy's face-locked img2img blueprint lives in `src/FACELOCK.md`; Image tab now lists `SDXL pool — face-lock edits` (SFW) and `NSFW SDXL pool — uncensored face-lock edits` (NSFW toggle on).</li>
+          <li><strong>Image anatomy + consistency locks</strong> — every image prompt now auto-locks same age, face, body, two arms/legs, five-finger hands, natural nails, five-toe feet, plus scene architecture/lighting/time-of-day; edit mode anchors to the same person, room and light; stronger avoid-list stops extra limbs, fused fingers, deformed feet and warped buildings for people, animals, birds and scenes, SFW and NSFW.</li>
+          <li><strong>NSFW consistency lab v1</strong> — same lock method through the uncensored route: Vikram + Aiko artistic-nude refs (seeds 5001/5002, Perchance NSFW, 16:9) plus 2 locked story frames reusing each seed. Faces, age gap and courtyard hold (~92%).</li>
+          <li><strong>Storyboard age + face lock</strong> — lock clause now pins same age, facial features, skin tone, hair plus photoreal faces, with age-gap tested live. Lab v4: 72yo Tomas + 24yo Lena + robot crab Clank, Mekong floating market golden hour, 6 locked frames, ages and faces hold.</li>
+          <li><strong>Storyboard scene-lock upgrade</strong> — scene slots now pin architecture, lighting and time of day plus 16:9 landscape wide-shot in every prompt, alongside per-character seed rotation. Lab v3: Vikram + Aiko + tortoise Kame in snowy Himalayan monastery, 6 locked frames, scene holds across all frames.</li>
+          <li><strong>Storyboard per-character seed rotation</strong> — story frames now rotate through each cast slot's seed (Kabir → Elena → Kabir…) instead of pinning the whole story to slot 1, so multi-character faces hold across scenes. Lab v2: Kabir + Elena + Lisbon alley, 16:9, 5 locked frames live on board.</li>
+          <li><strong>Character wardrobe + 10-frame consistent story</strong> — Character designer generates straight into renamable Cast slots (16:9 default); named Cast, Scene and Wardrobe slots ride every prompt as a character-lock clause (same faces, outfits, place); ★ 10-frame story builds 10 scenes with per-image fail-retry ×3; everything autosaves per project + Resume banner, so a new chat + Next continues where you left off. First production: "Maya & Rio — Lisbon Crane" (2 renamed characters, 1 scene, 1 outfit, 10 locked frames, live on the board). Retrain round 1: seed-lock on cast slots, Rio re-shot photoreal, 2 frames fixed — consistency 75% → 91%.</li>
+          <li><strong>Storyboard Import into story</strong> — renamable Cast, Scenes and Wardrobe slots (computer or Library pictures, add/remove freely, any slot joins the board as a frame, outfits write into the prompt) plus a Character designer (gender, age, build, hair, outfit, style, expression) that builds the portrait prompt and generates it; everything travels with the project.</li>
+          <li><strong>Compact minimal players</strong> — stages capped to fit the window on any OS (video, image, reader, storyboard, voiceover), slimmer transport bar, no overflow at phone width.</li>
+          <li><strong>Live filters that actually preview</strong> — gamma renders live in the player, grain + light leak got animated overlay layers, sharpen previews too; 4 new looks (Grain, Realistic Noise, Light Leak, ADD Glow) plus Gamma/Grain/Leak sliders on images.</li>
+          <li><strong>Stickers + ready frames</strong> — emoji sticker bar (tap to add, drag to move, scroll to resize, double-click to remove) and 6 frames (Cinema, Polaroid, Neon, Rounded, Vignette) on Video, Image and Storyboard, baked into the download.</li>
+          <li><strong>AI upscale 2x/3x/4x fixed</strong> — neural passes run first on the small input, then exact bicubic to size; graceful fallback to sharpened bicubic if the model stalls.</li>
+          <li><strong>Private proxy diagnostics</strong> — Settings → Privacy: relay timeout fine-tune, VPN note, masked addresses everywhere public, Probe Perchance hooks + diagnostics box for the real (private) log.</li>
+          <li><strong>Editor menus + density</strong> — real File/Edit/Clip/Sequence/Marker/Graphics/View/Window/Help dropdowns with working actions, compact density, adjustable lane height, smaller icons.</li>
+          <li><strong>Image SFW word-block removed</strong> — no more refused generations from the prompt filter; the toggle just picks the route.</li>
+          <li><strong>Storyboard per-scene timing + transitions</strong> — each board card carries its own seconds (defaults from sec/img), Compile offers Cut / Dissolve 0.3s / 0.6s crossfades.</li>
+          <li><strong>Quiet log-mode switch</strong> — flipping Simple/Full on the Video run log no longer writes a log line every time; the mode just applies. Image, Reader, Voice and Editor logs were checked too and stay silent.</li>
+          <li><strong>Storyboard + Voiceover start empty</strong> — the board no longer auto-loads the last story's frames on startup (saved stories still load when picked from the Project dropdown, or via Resume); Voiceover already starts with no track, clip, script or images.</li>
+          <li><strong>Readable generate buttons in light themes</strong> — the sticky button bar's fade now uses each theme's own surface color instead of a fixed dark scrim, so the storyboard's "+ 1 frame" button (and every other ghost button) stays readable everywhere.</li>
+          <li><strong>Storyboard delete really deletes</strong> — the card ×, Clear, and Delete project now also remove the story's Library copies and stored backups (compiled videos are kept), so deleted frames can no longer come back on switch or reload.</li>
+          <li><strong>Upscale everywhere: 1×/2×/3×/4×/480p/720p/1080p</strong> — Fast, Quality, and AI modes offer the full scale list on every video container, and the same scales apply to image and storyboard exports.</li>
+          <li><strong>Imports that stick around</strong> — imported video, image, and storyboard media auto-save to the Library (Imports), play live in the studio, and feed straight into upscale/encode/export; explicit Save buttons on both result bars too.</li>
+          <li><strong>Library thumbnails fixed</strong> — every card shows its picture again (missing posters are rebuilt from the saved file on open); category counts no longer double-list images under Video.</li>
+          <li><strong>Tutorial + AI Tutor refreshed for V4</strong> — Storyboard steps, Feedback/Library steps, and a tutor that knows all seven studios.</li>
+          <li><strong>Feedback wall timeout fix</strong> — Send waits for the wall to finish loading instead of firing into a dead iframe (the cause of the engine "timed out" error); background telemetry also holds until the wall is up.</li>
+          <li><strong>Image models categorized</strong> — model picker grouped by source like Video (◆ Perchance built-in · ● Free · ○ Puter · ✦ Uncensored · ■ This device); Perchance Best SFW + Best NSFW lead Auto; honest note that Perchance has no native image-to-video (animate in Video tab).</li>
+          <li><strong>Storyboard voiceover export</strong> — 🎙 Voiceover sends one narration line per scene to the Voice tab (Generate voice there, export WAV/MP3); ✨ Narrate AI-rewrites scenes into spoken narration first.</li>
+          <li><strong>Storyboard UI unified</strong> — ratio buttons now use the app's chip style (were raw browser buttons), # badges follow the theme accent in mono 10.5px, card tools are text-only at one size, empty viewer matches other studios, and the blank video box under the board is hidden until a compile exists. No clipped controls on any tab at phone width.</li>
+          <li><strong>Storyboard project switcher</strong> — multiple stories per device with a Project dropdown (+ New / Delete); switching restores frames from saved projects or the Library, auto-save keeps going.</li>
+          <li><strong>Editor renamed Editor Beta Testing</strong> — the timeline is early-stage, now labeled as such with its own amber dashed tab.</li>
+          <li><strong>Voiceover script box starts empty</strong> — the sample letter no longer prefills; a hint shows instead and vanishes on click (sample still one tap away).</li>
+          <li><strong>Voiceover camera</strong> — record video with front/back camera in the Voice tab's Camera subtab, compress or upscale to 720p–4K on-device, download or save to the Library.</li>
+          <li><strong>Voice-to-text dictation</strong> — 🎤 Dictate button under script, prompt, and chat fields records speech into text.</li>
+          <li><strong>Library thumbnails fixed</strong> — every video take, final, and editor export saves its poster frame up front, so Video/Images/Takes/Editor tabs always show a thumbnail (placeholder only when there genuinely is none).</li>
+          <li><strong>Image batches land in Images too</strong> — multi-variation runs still auto-save each variation, and now appear under Images as well as Takes; same for video takes under Video.</li>
+          <li><strong>Editor Library pane fixed</strong> — real filenames, working thumbnails, and import that can't throw.</li>
+          <li><strong>Feedback wall hardened</strong> — Send caps at ~25s with a clear busy message, keeps your text on failure, no more engine error box.</li>
+          <li><strong>Feedback wall</strong> — public suggestion box (top-right <code>💬 Feedback</code> button + footer link), category form, newest-first wall.</li>
+          <li><strong>Tutorial + AI Tutor</strong> — per-studio steps here; tutor chat (topbar <code>AI Tutor</code>), first-run new/returning prompt, hover tips, floating <code>?</code> ask-anywhere button.</li>
+          <li><strong>Cleaner navigation</strong> — studio tabs in one small rectangular horizontal row; Tutorial + Feedback moved to the top-right, away from the studio tabs; single AI Tutor entry; tapping the logo returns home.</li>
+          <li><strong>Font size setting</strong> — Settings → Appearance scales the whole app (80–125%), saved per device.</li>
+          <li><strong>Quieter Video tab</strong> — long explanations collapsed; only the controls and essentials show.</li>
+          <li><strong>Image run log</strong> — Simple/Full studio-talk log under the Canvas, matching Video.</li>
+          <li><strong>Qwen-Image-2.1 route</strong> — free text-to-image + edit model in the Image picker and Auto chain.</li>
+        </ol>
+        <p class="muted small">Vote and shape the order on the <button type="button" class="linklike" data-goto="pageFeedback">Feedback</button> wall.</p>
+      </div>
+    </section>
+  </main>
+
+  <main class="layout page" id="pageTutor" hidden>
+    <section class="panel studio">
+      <div class="panel-head">
+        <h2>AI Tutor</h2>
+        <span class="hint">answers from the manual</span>
+      </div>
+      <p class="muted small">Ask in plain words. The tutor only knows this app — perfect for how-to questions.</p>
+      <div class="tutor-chips">
+        <button type="button" data-q="How do I make my first video, step by step?">First video?</button>
+        <button type="button" data-q="The free pool refused everything. What do I do?">Pool refused?</button>
+        <button type="button" data-q="How do I use my own GPU with Colab?">Own GPU?</button>
+        <button type="button" data-q="How do I get the best quality image?">Best image?</button>
+        <button type="button" data-q="How do I build a storyboard and turn it into video?">Storyboard?</button>
+        <button type="button" data-q="How do I export my edited timeline?">Export edit?</button>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <button type="button" class="btn btn-ghost btn-tiny" data-hovertoggle>Hover tips: OFF</button>
+      </div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Ask anything</h2></div>
+      <div class="tutor-chat">
+        <div id="tutorMsgs"><div class="tmsg ai">Hi — I am the tutor. Ask me how to do anything in this app, e.g. “how do I build a storyboard?”, “why is my clip short?”, or “how do I export my edit?”.</div></div>
+        <div class="tutor-input">
+          <input id="tutorInput" type="text" placeholder="Ask how to do anything here…" autocomplete="off">
+          <button id="tutorSendBtn" class="btn btn-primary" type="button">Ask</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Own GPU · free pool · on-device.</span>
+    <span class="sep">·</span>
+    <span id="footPrivacy">Library is encrypted on-device.</span>
+    <span class="sep">·</span>
+    <button type="button" class="linklike" id="footFeedback">Feedback</button>
+    <span class="sep">·</span>
+    <button type="button" class="linklike" id="footTutorial">Tutorial</button>
+    <span class="sep">·</span>
+    <button type="button" class="linklike" id="footRoadmap">Roadmap</button>
+  </footer>
+</div>
+
+      <dialog id="repaintDlg" class="repaint-dlg">
+        <div class="repaint-head">
+          <strong>Repaint</strong>
+          <span class="hint">Auto-finds clothing on-device. Or drag the box.</span>
+        </div>
+        <div id="repaintWrap" class="repaint-wrap">
+          <img id="repaintImg" alt="reference image">
+          <img id="repaintOverlay" class="repaint-overlay" alt="the clothing about to be repainted" hidden>
+          <div id="repaintBox" class="repaint-box">
+            <span class="repaint-tag">repaint</span>
+            <span class="repaint-grip" data-grip="nw"></span>
+            <span class="repaint-grip" data-grip="ne"></span>
+            <span class="repaint-grip" data-grip="sw"></span>
+            <span class="repaint-grip" data-grip="se"></span>
+          </div>
+        </div>
+        <div class="repaint-foot">
+          <span id="repaintInfo" class="hint"></span>
+          <div class="repaint-actions">
+            <select id="repaintWantSel" class="repaint-want" title="What counts as clothing">
+              <option value="all">All clothing</option>
+              <option value="top">Top / dress only</option>
+              <option value="bottom">Waist down only</option>
+            </select>
+            <button id="repaintClothesBtn" class="btn btn-tiny btn-primary" type="button">Detect clothes</button>
+            <button id="repaintAutoBtn" class="btn btn-tiny" type="button">Face box</button>
+            <button id="repaintResetBtn" class="btn btn-tiny" type="button">Default box</button>
+            <button id="repaintDoneBtn" class="btn btn-tiny" type="button">Done</button>
+          </div>
+        </div>
+      </dialog>
+      <dialog id="cropDlg" class="repaint-dlg">
+        <div class="repaint-head">
+          <strong>Crop</strong>
+          <span class="hint">Drag to move · corners to resize.</span>
+        </div>
+        <div id="cropWrap" class="repaint-wrap crop-wrap">
+          <img id="cropImg" alt="image to crop">
+          <div id="cropBox" class="crop-box">
+            <span class="repaint-grip" data-grip="nw"></span>
+            <span class="repaint-grip" data-grip="ne"></span>
+            <span class="repaint-grip" data-grip="sw"></span>
+            <span class="repaint-grip" data-grip="se"></span>
+          </div>
+        </div>
+        <div class="repaint-foot">
+          <span id="cropInfo" class="hint"></span>
+          <div class="repaint-actions">
+            <button id="cropApplyBtn" class="btn btn-tiny btn-primary" type="button">Apply crop</button>
+            <button id="cropCancelBtn" class="btn btn-tiny" type="button">Cancel</button>
+          </div>
+        </div>
+      </dialog>
+
+<!-- ===== Settings modal ===== -->
+<dialog id="settingsDlg" class="modal">
+  <form method="dialog" class="modal-inner">
+    <header class="modal-head">
+      <h3>Settings</h3>
+      <button class="btn btn-tiny" value="close">Close</button>
+    </header>
+
+    <div class="modal-body">
+      <section class="set-block">
+        <h4>Where the rendering happens <span class="badge badge-own">free &amp; unlimited</span></h4>
+        <p class="muted small">
+          Bring your own GPU and the app stops depending on anyone else. Run the included server on a
+          free Google&nbsp;Colab T4 (or any machine with an NVIDIA / Apple GPU), then paste its address here —
+          the models download once and then work offline too. No account, no token, no Hugging&nbsp;Face.
+        </p>
+        <label class="lbl" for="computeSel">Compute mode</label>
+        <select id="computeSel">
+          <option value="auto">Auto — my server first, then this device (free pool as a bonus, if configured)</option>
+          <option value="server">Only my GPU server</option>
+          <option value="pool">Only the free public pool (needs a free Hugging Face token)</option>
+          <option value="offline">Only this device (works fully offline)</option>
+        </select>
+        <label class="lbl" for="serverUrlInput">My GPU server address</label>
+        <div class="key-row">
+          <input id="serverUrlInput" class="mono" type="text" placeholder="https://xxxx.trycloudflare.com or http://127.0.0.1:7860" autocomplete="off">
+          <button type="button" id="testServerBtn" class="btn btn-tiny">Test</button>
+        </div>
+        <label class="lbl" for="serverTokenInput">Server key <span class="muted">(only if you started it with --key)</span></label>
+        <input id="serverTokenInput" class="mono" type="password" placeholder="optional" autocomplete="off">
+        <div id="serverStatus" class="srv-status idle">Checking compute options…</div>
+        <div id="serverModelList" class="space-list" hidden></div>
+        <p class="muted small" id="serverWeightsNote" style="margin-top:8px">
+          Weights download once and then work offline. The 14B models render at their native 720p whatever
+          quality you pick — that is the resolution they were trained at, and it is the difference between a
+          clean clip and a mushy one.
+        </p>
+        <div class="key-row" style="margin-top:9px">
+          <button type="button" id="serverHelpBtn" class="btn btn-ghost btn-tiny">How to start it (Colab / local)</button>
+        </div>
+        <label class="switch-row"><input type="checkbox" id="poolToggle"> <span>Also let the free public HF pool help when my server is busy or down <span class="muted">(needs a free token)</span></span></label>
+        <label class="switch-row"><input type="checkbox" id="offlineFallbackToggle"> <span>If everything else fails, render on this device instead of erroring</span></label>
+        <label class="switch-row"><input type="checkbox" id="communityOptInToggle"> <span>Own pool (opt-in) — count this device toward larger models + run small pool tasks here <span class="muted">(voluntary, visible, leave anytime)</span></span></label>
+        <div id="communityPoolNote" class="model-note"></div>
+      </section>
+
+      <section class="set-block">
+        <h4>Free GPU boost <span class="badge badge-free">optional</span></h4>
+        <p class="muted small">
+          These are public Hugging&nbsp;Face Spaces. Hugging&nbsp;Face meters them per day: about
+          <strong>2 minutes of GPU time per address</strong> if you are not signed in, and
+          <strong>5 minutes per account</strong> on a free account. A token is therefore optional — it raises
+          the ceiling a little and moves you up the queue. If you run into "the pool refused this job", the
+          fix that actually works is the address rotation below, or your own server above.
+        </p>
+        <div class="key-row">
+          <input id="hfTokenInput" class="mono" type="password" placeholder="hf_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <button type="button" id="hfHelpBtn" class="btn btn-tiny">Get one</button>
+        </div>
+        <p class="muted small">No key is built into the app — everyone pastes their own, and it never leaves their browser except to Hugging&nbsp;Face with their own jobs.</p>
+      </section>
+
+      <section class="set-block">
+        <h4>NSFW first frame <span class="badge badge-free">free</span></h4>
+        <p class="muted small">
+          A video model animates the frame you give it — it will not undress anyone by itself. So with
+          <strong>NSFW mode</strong> on, the app makes the <em>first frame</em> explicit before rendering.
+          <strong>Auto</strong> draws a fresh explicit frame from your prompt with
+          <strong>Pollinations</strong> — seconds, no key, no quota, always answers — and the video model
+          animates that frame. It is a reliable result of a <em>new</em> person, not an edit of your photo.
+          <strong>Undress my image</strong> repaints <em>your own</em> picture with <strong>AI Horde</strong>'s
+          free, uncensored inpainting, and it works out <em>which pixels are clothing</em> first with a 4 MB
+          clothes-detection model that ships inside this generator and runs in your browser — the picture
+          never leaves your machine for that step. Only the clothing it finds is regenerated and your
+          original is laid back over everything else, so the face, hair, pose and background stay yours at
+          the photo's own resolution. “Repaint area” chooses what counts as clothing, or drag a box if you
+          would rather pick the region yourself. Its workers run their own safety filters, so several
+          attempts are made at once and the first clean one wins; only a handful of AI Horde's workers
+          accept inpainting, so the queue can be long — a free aihorde.net key skips almost all of it.
+        </p>
+        <div class="key-row">
+          <input id="hordeKeyInput" class="mono" type="password" placeholder="AI Horde API key (optional)" autocomplete="off">
+          <button type="button" id="hordeHelpBtn" class="btn btn-tiny">Get one</button>
+        </div>
+        <p id="hordeKeyNote" class="muted small" hidden></p>
+      </section>
+
+      <section class="set-block">
+        <h4>Paid model APIs <span class="badge badge-key">bring your own key</span></h4>
+        <p class="muted small">
+          Kling, MiniMax&nbsp;/&nbsp;Hailuo and Runway are commercial services — there is no free tier.
+          Add a key to unlock them; you are billed by that provider, not by us.
+          Nothing is pre-filled: each visitor uses only their own key, stored on their own device.
+        </p>
+        <label class="lbl">Replicate token</label>
+        <input id="repInput" class="mono" type="password" placeholder="r8_..." autocomplete="off">
+        <label class="lbl">Replicate model</label>
+        <select id="repModelSel"></select>
+        <label class="lbl">fal.ai key</label>
+        <input id="falInput" class="mono" type="password" placeholder="key_id:key_secret" autocomplete="off">
+        <label class="lbl">fal.ai model</label>
+        <select id="falModelSel"></select>
+        <label class="lbl">Runway API key</label>
+        <input id="runwayInput" class="mono" type="password" placeholder="key_..." autocomplete="off">
+        <label class="lbl">Runway model</label>
+        <select id="runwayModelSel"></select>
+      </section>
+
+      <section class="set-block">
+        <h4>MuAPI <span class="badge badge-key">paid · one key, 51 models</span></h4>
+        <p class="muted small">
+          MuAPI is a single key in front of the commercial video models — Kling, Veo, Sora, Seedance,
+          Wan, Hailuo, Vidu, LTX, PixVerse and their unfiltered variants. There is no free tier: the
+          key costs nothing to create, generations are paid for with credits on that account. The
+          model list is split into six sections — <span class="mono">◆ flagship</span>,
+          <span class="mono">◇ balanced</span>, <span class="mono">⚡ fast</span>,
+          <span class="mono">▾ budget</span>, <span class="mono">✦ uncensored</span> and
+          <span class="mono">✎ text→video</span> — and the note under the picker names the section the
+          selected model came from. Two things are worth knowing first. MuAPI sends no CORS headers,
+          so every request is relayed through Perchance's own fetch proxy. And it accepts reference
+          images by <em>public URL</em> only — a data URL is rejected — so the frame being animated is
+          published to the upload host before each segment is submitted. Pick a model and press
+          <strong>Quote the selected model</strong> to see the exact price of the run you have set up —
+          that quote comes free from MuAPI's own billing maths and needs no key.
+        </p>
+        <div class="key-row">
+          <input id="muapiKeyInput" class="mono" type="password" placeholder="MuAPI key" autocomplete="off">
+          <button type="button" id="muapiHelpBtn" class="btn btn-tiny">Get one</button>
+          <button type="button" id="muapiBalanceBtn" class="btn btn-tiny">Check credits</button>
+        </div>
+        <div id="muapiBalanceOut" class="muted small"></div>
+        <div class="key-row">
+          <button type="button" id="muapiQuoteBtn" class="btn btn-tiny">Quote the selected model</button>
+        </div>
+        <div id="muapiQuoteOut" class="muted small"></div>
+        <div id="muapiNote" class="model-note"></div>
+      </section>
+
+      <section class="set-block">
+        <h4>Custom Gradio space</h4>
+        <p class="muted small">
+          Any public Hugging&nbsp;Face Gradio video space works. Paste its URL — the endpoints are auto-detected.
+        </p>
+        <div class="key-row">
+          <input id="customSpaceInput" class="mono" type="text" placeholder="owner/space-name or https://…hf.space">
+          <button type="button" id="addSpaceBtn" class="btn btn-tiny">Add</button>
+        </div>
+        <div id="customSpaceList" class="space-list"></div>
+      </section>
+
+      <section class="set-block">
+        <h4>Privacy &amp; IP rotation <span class="badge badge-free">free</span></h4>
+        <p class="muted small">
+          A relay is any URL that fetches on your behalf, so the model only ever sees the relay's address
+          instead of yours. Your own AIVideoGen server already serves one at
+          <span class="mono">/api/relay</span>, a Cloudflare Worker you deploy in one click works just as
+          well, and <strong>Perchance's own proxy is built in</strong> — nothing to install. Only add relays
+          you trust: a relay sees the request headers, and if you paste a Hugging&nbsp;Face token that token
+          travels with the request (it identifies your <em>account</em> to the model owner, never your
+          address).
+        </p>
+        <label class="switch-row"><input type="checkbox" id="strictPrivacyToggle"> <span>Keep models from seeing your address <span class="muted">(recommended — <em>every</em> request goes through a relay: the model's parameter list, the reference&#8209;frame upload, the job, its live progress stream and the finished clip; if no relay can carry a request it is refused rather than sent from your connection)</span></span></label>
+        <div id="strictNote" class="model-note"></div>
+        <label class="switch-row"><input type="checkbox" id="freshRunToggle"> <span>Start every run fresh <span class="muted">(recommended — the free allowance is counted per <em>address</em> and shared by every free model, so the app drops its own bench records and steps to the next address before each run; without it one refusal can sit on all the models and the next run gives up before it tries)</span></span></label>
+        <label class="switch-row"><input type="checkbox" id="wipeTracesToggle"> <span>Wipe traces after every run <span class="muted">(cookies this origin can see, web storage, caches, resource timings and the quota records — the clip library and your settings are kept)</span></span></label>
+        <div id="traceNote" class="model-note"></div>
+        <label class="switch-row"><input type="checkbox" id="autoResetToggle"> <span>Reset automatically when a run is blocked <span class="muted">(if the whole pool refuses — spent allowance, every route out — the app wipes the traces, forgets the bench and the router's records, and steps to the next address by itself, so the next Generate starts clean. It never deletes the library.)</span></span></label>
+        <div class="key-row">
+          <button type="button" id="resetAllowanceBtn" class="btn btn-tiny">Reset…</button>
+          <button type="button" id="wipeTracesBtn" class="btn btn-tiny">Wipe traces now</button>
+        </div>
+        <p class="muted small">
+          The free public pool also counts each free GPU allowance <em>per address</em>, so when a model
+          refuses a job, asking again from somewhere else is usually all it takes. A different address
+          brings its own allowance; a shared fallback (Perchance's proxy) has already been spent by
+          everybody else, which is why it is only ever tried after a refusal.
+        </p>
+        <label class="lbl" for="relayModeSel">Address rotation</label>
+        <select id="relayModeSel"></select>
+        <div id="relayNote" class="model-note"></div>
+        <label class="switch-row"><input type="checkbox" id="untraceToggle"> <span>Untrace every request <span class="muted">(no referrer, no cookies, no cache)</span></span></label>
+        <label class="switch-row"><input type="checkbox" id="perchanceRelayToggle"> <span>Use Perchance's built&#8209;in proxy as a fallback address <span class="muted">(nothing to install; a shared address, so only tried after a refusal)</span></span></label>
+        <label class="switch-row"><input type="checkbox" id="publicRelayToggle"> <span>Also list the public GET&#8209;only relays <span class="muted">(slow; extras, never used for a job)</span></span></label>
+        <label class="lbl">My relays</label>
+        <div class="key-row">
+          <input id="relayInput" class="mono" type="text" placeholder="https://my-relay.workers.dev  ·  https://xxxx.trycloudflare.com">
+          <button type="button" id="addRelayBtn" class="btn btn-tiny">Add</button>
+        </div>
+        <p id="relayEmpty" class="muted small">No relays yet — add one, or just keep using your own connection.</p>
+        <div id="relayList" class="space-list"></div>
+        <div class="key-row" style="margin-top:9px">
+          <button type="button" id="checkIpBtn" class="btn btn-ghost btn-tiny">Check addresses</button>
+          <button type="button" id="relayHelpBtn" class="btn btn-ghost btn-tiny">How to set this up</button>
+        </div>
+        <div id="ipList" class="space-list"></div>
+        <label class="lbl" style="margin-top:10px">Proxy fine-tune</label>
+        <div class="grid2">
+          <label class="lbl">Request timeout (s)<input id="relayTimeoutInput" class="mono" type="number" min="5" max="300" step="5" title="How long one relayed request may take before it tries the next path"></label>
+          <label class="lbl">VPN / extra hop note<input id="vpnNoteInput" class="mono" type="text" placeholder="e.g. Mullvad SE-12 (local only)" autocomplete="off" title="A reminder for yourself — which VPN or proxy you switch by hand. Never leaves this device."></label>
+        </div>
+        <div class="hint-block">The app cannot switch your VPN or proxy itself — that lives outside the page. What it can do: rotate relay paths per generation, refuse to leak direct, and prove each path below.</div>
+        <label class="lbl" style="margin-top:10px">Egress diagnostics <span class="hint">private — settings only, never in the public run log</span></label>
+        <div class="key-row">
+          <button type="button" id="probeHooksBtn" class="btn btn-tiny">Probe Perchance hooks</button>
+          <button type="button" id="copyDiagBtn" class="btn btn-tiny">Copy diagnostics</button>
+          <button type="button" id="clearDiagBtn" class="btn btn-tiny">Clear</button>
+        </div>
+        <div id="diagBox" class="logbox mono" style="max-height:150px">Diagnostics idle — press Check addresses or Probe Perchance hooks.</div>
+      </section>
+
+      <section class="set-block" id="safetyBlock">
+        <h4>Content safety <span class="badge badge-free">encrypted &amp; local</span></h4>
+        <p class="muted small">
+          The section above is about <em>who</em> is asking. This one is about <em>what</em> is sent and what is
+          kept. Nothing here changes the prompt — it decides which routes a run may use, and what happens to
+          your content at rest.
+        </p>
+
+        <label class="switch-row"><input type="checkbox" id="vaultToggle"> <span>Encrypt the library at rest <span class="muted">(AES-GCM under a key generated on this device — the clips, their poster frames and the prompts are scrambled in storage, while the technical facts stay readable so the library still lists and sorts; a passphrase below turns the key into a real lock)</span></span></label>
+        <div id="vaultNote" class="model-note"></div>
+        <label class="lbl" for="vaultPassInput">Vault passphrase <span class="muted">(optional — without it the key sits on this device, which defeats a casual look and nothing more)</span></label>
+        <div class="key-row">
+          <input id="vaultPassInput" class="mono" type="password" placeholder="at least 6 characters" autocomplete="new-password">
+          <button type="button" id="vaultPassBtn" class="btn btn-tiny">Set</button>
+          <button type="button" id="vaultLockBtn" class="btn btn-tiny">Lock</button>
+        </div>
+        <div id="vaultPassOut" class="muted small"></div>
+        <label class="lbl">Recovery phrase <span class="muted">(24 words — opens the vault and every saved clip on any device. Copy it somewhere offline.)</span></label>
+        <div class="key-row">
+          <button type="button" id="vaultShowBtn" class="btn btn-tiny">Show</button>
+          <button type="button" id="vaultCopyBtn" class="btn btn-tiny">Copy</button>
+        </div>
+        <div id="vaultPhraseOut" class="muted small mono" style="word-break:break-word"></div>
+        <label class="lbl" for="vaultRestoreInput">Restore <span class="muted">(paste a phrase or key)</span></label>
+        <div class="key-row">
+          <input id="vaultRestoreInput" class="mono" type="text" placeholder="24 words…" autocomplete="off">
+          <button type="button" id="vaultRestoreBtn" class="btn btn-tiny">Restore</button>
+        </div>
+        <div id="vaultRestoreOut" class="muted small"></div>
+
+        <label class="lbl" for="nsfwRoutingSel">An explicit run — which models may be asked</label>
+        <select id="nsfwRoutingSel"></select>
+        <div id="nsfwRoutingNote" class="model-note"></div>
+
+        <label class="switch-row"><input type="checkbox" id="leakGuardToggle"> <span>Never publish content to a public URL <span class="muted">(this is what keeps MuAPI out of a run: its API rejects a data: URL, so the reference frame would have to be uploaded to a public host first, where anyone with the link could read it)</span></span></label>
+        <label class="switch-row"><input type="checkbox" id="localOnlyToggle"> <span>Nothing leaves this device <span class="muted">(only your own GPU server and the on-device renderer are reachable, and the free inpainting that makes a photo explicit is refused with an explanation instead of sending it — you give up the free pool)</span></span></label>
+        <div id="localNote" class="model-note"></div>
+
+        <label class="lbl">Where this run's content would go</label>
+        <div id="egressList" class="egress-list"></div>
+        <div class="key-row" style="margin-top:9px">
+          <button type="button" id="refreshEgressBtn" class="btn btn-tiny">Re-check</button>
+          <button type="button" id="panicBtn" class="btn btn-danger btn-tiny">Destroy vault &amp; library</button>
+        </div>
+      </section>
+
+      <section class="set-block">
+        <h4>Appearance</h4>
+        <div class="row-between">
+          <label class="lbl" for="fontSizeRange" style="margin:0">App font size <span class="hint" id="fontSizeVal">100%</span></label>
+          <button type="button" id="fontSizeResetBtn" class="btn btn-tiny" title="Back to 100%">Reset</button>
+        </div>
+        <input id="fontSizeRange" class="range" type="range" min="80" max="125" step="5" value="100" aria-label="App font size">
+        <div class="hint-block">Scales the whole app up or down. Saved on this device.</div>
+      </section>
+
+      <section class="set-block">
+        <h4>Data</h4>
+        <div class="result-actions">
+          <button type="button" id="clearHistoryBtn" class="btn btn-ghost">Clear library</button>
+          <button type="button" id="clearAllBtn" class="btn btn-danger">Wipe all local data</button>
+        </div>
+      </section>
+
+      <section class="set-block">
+        <h4>AI Tutor <span class="badge badge-free">free</span></h4>
+        <p class="muted small">The tutor answers how-to questions from the built-in manual, on its own full page. Hover tips explain any button when turned on.</p>
+        <div class="key-row set-tutor-link">
+          <button type="button" id="settingsTutorBtn" class="btn btn-ghost btn-tiny">Open AI Tutor</button>
+        </div>
+      </section>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Library modal ===== -->
+<dialog id="historyDlg" class="modal">
+  <form method="dialog" class="modal-inner">
+    <header class="modal-head">
+      <h3>Library</h3>
+      <button class="btn btn-tiny" value="close">Close</button>
+    </header>
+    <div class="modal-body">
+      <div class="gallery-bar">
+        <span class="lbl">View</span>
+        <div id="libViewRow" class="seg" role="group" aria-label="Library view size"></div>
+      </div>
+      <div class="lib-toolbar">
+        <input id="libSearchInput" class="mono" type="search" placeholder="Find in library…" autocomplete="off" style="flex:1;min-width:140px">
+        <button type="button" id="libSelectAllBtn" class="btn btn-tiny">Select all</button>
+        <button type="button" id="libDeleteSelBtn" class="btn btn-tiny btn-danger" disabled>Delete selected (0)</button>
+        <button type="button" id="libDeleteAllBtn" class="btn btn-tiny btn-danger">Delete all</button>
+        <span id="libSelCount" class="mono tiny">0 selected</span>
+      </div>
+      <div id="libCatRow" class="chips" role="group" aria-label="Library categories" style="margin:8px 0"></div>
+      <p class="muted small" style="margin:0 0 10px">Finals = finished. Sandbox = takes.</p>
+      <div id="historyGrid" class="history-grid"></div>
+      <p id="historyEmpty" class="muted small">Empty. Clips stay in this browser.</p>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== "How to start the server" modal ===== -->
+<dialog id="serverHelpDlg" class="modal">
+  <form method="dialog" class="modal-inner">
+    <header class="modal-head">
+      <h3>Run the renderer on your own GPU</h3>
+      <button class="btn btn-tiny" value="close">Close</button>
+    </header>
+    <div class="modal-body">
+      <section class="set-block">
+        <h4>Option A — free Google Colab (T4 GPU)</h4>
+        <ol class="steps">
+          <li><a href="src/colab/AIVideoGen_Colab.ipynb" download="AIVideoGen_Colab.ipynb">Download the notebook</a> (or open <span class="mono">src/colab/AIVideoGen_Colab.ipynb</span> from the editor's file panel).</li>
+          <li>In <a href="https://colab.research.google.com/" target="_blank" rel="noopener">Colab</a>: <strong>File → Upload notebook</strong>, and sign in with your Google account.</li>
+          <li><strong>Runtime → Change runtime type → T4 GPU</strong>, then <strong>Runtime → Run all</strong>.</li>
+          <li>The last cells print a public <span class="mono">https://…trycloudflare.com</span> address — paste it below and press <strong>Test</strong>.</li>
+        </ol>
+        <p class="muted small">
+          Colab is free but the session ends after a while of inactivity, and the address changes each time —
+          just re-run the last cell and paste the new address. The model's weights are fetched from
+          <strong>ModelScope</strong> on first use (90&ndash;127&nbsp;GB for the 14B models, ~35&nbsp;GB for
+          <span class="mono">wan5b</span>, which is what fits a free Colab) and the notebook offers to cache
+          them in your Google Drive so a restart doesn't fetch them again.
+        </p>
+      </section>
+      <section class="set-block">
+        <h4>Option B — your own machine</h4>
+        <p class="muted small">
+          Install Python 3.10+, then in the project's <span class="mono">src/server</span> folder:
+        </p>
+        <pre class="code-block mono">pip install -r requirements.txt
+python server.py                      # NVIDIA / CPU
+python server.py --tunnel cloudflare  # + a public URL, no account
+python server.py --model wan5b --preload
+python server.py --list               # the model catalogue
+python server.py --download wan5b     # fetch the weights now, then exit
+python server.py --weights            # what is already on disk</pre>
+        <p class="muted small">
+          CUDA builds of PyTorch: <span class="mono">pip install torch --index-url https://download.pytorch.org/whl/cu124</span>.
+          On Apple silicon it runs on MPS automatically. Weights come from <strong>ModelScope</strong> first (its
+          copy of the Wan family is complete and it is usually much faster than huggingface.co), then Hugging
+          Face, then the mirror you name with
+          <span class="mono">--hf-endpoint https://hf-mirror.com</span>. They are kept on disk, so once a model
+          has been used the whole thing works with the internet unplugged — and <strong>Download</strong> next to
+          a model in the settings list fetches one up front, with a progress bar.
+        </p>
+      </section>
+      <section class="set-block">
+        <h4>Other free GPU hosts</h4>
+        <p class="muted small">
+          The same <span class="mono">server.py</span> runs unchanged on
+          <strong>Kaggle</strong> (≈30 GPU-h/week, enable GPU + Internet in the notebook settings),
+          <strong>Amazon SageMaker Studio Lab</strong> (free account, persistent storage),
+          <strong>Lightning AI Studio</strong> (free monthly GPU credits) and
+          <strong>Modal / RunPod</strong> free tiers. Start it exactly as in Option B — the tunnel flag gives you
+          a shareable address on all of them.
+        </p>
+      </section>
+      <section class="set-block">
+        <h4>Nothing at all?</h4>
+        <p class="muted small">
+          Set the compute mode to <strong>Only this device</strong>. The built-in offline camera rig turns any
+          picture into a moving clip on your phone or laptop with no internet, no GPU and no download — it just
+          can't invent new detail the way a diffusion model can.
+        </p>
+      </section>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== "Set up a relay" modal ===== -->
+<dialog id="relayHelpDlg" class="modal">
+  <form method="dialog" class="modal-inner">
+    <header class="modal-head">
+      <h3>Change the address your requests come from</h3>
+      <button class="btn btn-tiny" value="close">Close</button>
+    </header>
+    <div class="modal-body">
+      <section class="set-block">
+        <h4>What this actually does</h4>
+        <p class="muted small">
+          Every generation is one <span class="mono">POST</span> to a model. That request decides which free
+          GPU allowance gets spent, and it is the request that carries your address. Send it through a relay
+          and the model sees the relay instead — and a different address brings its own allowance.
+        </p>
+        <p class="muted small">
+          The numbers, straight from Hugging&nbsp;Face's own documentation: the shared free GPU pool gives
+          <strong>2 minutes a day per address</strong> if you are not signed in, and <strong>5 minutes a day
+          per account</strong> on a free account (40 minutes on PRO). The allowance resets 24 hours after your
+          first GPU use, and it is counted in seconds of GPU time — so a 2-second, 5-second and 10-second clip
+          cost very different amounts of it. Rotating addresses is what turns "2 minutes" into "2 minutes per
+          address", which is the only honest way to make the free pool keep going.
+        </p>
+        <p class="muted small">
+          When a refusal happens, the retry also drops your token: without it the allowance is charged to the
+          <em>new address</em> instead of to your (already spent) account.
+        </p>
+        <p class="muted small">
+          <strong>Keeping models from seeing your address</strong> (the first switch above, on by default)
+          goes further than rotation: while it is on, nothing about the run leaves from your connection at
+          all. Every request a model could ever see — the parameter list, the reference-frame upload, the job
+          itself, the stream that reports its progress, and the finished clip's download — travels through a
+          relay, and the <span class="mono">X-IP-Token</span> that decides which free allowance is spent is
+          never sent alongside the stream. If no relay can carry a request, the run stops and says so rather
+          than quietly falling back to your address.
+        </p>
+        <p class="muted small">
+          What a model owner can still see: the prompt, the reference image, and — if you pasted a
+          Hugging&nbsp;Face token — that token, which names your account. The relay itself can see the
+          request, so only add ones you trust, and the site serving this page can see that you pressed
+          Generate. Nothing here can hide the prompt's content from the model, because the model has to read
+          it to do the work.
+        </p>
+      </section>
+
+      <section class="set-block">
+        <h4>Starting every run fresh, and leaving no trace</h4>
+        <p class="muted small">
+          <strong>Start every run fresh</strong> (on by default) drops every bench record before a run and, when
+          there is more than one address, steps to the next one first. This is what lets a second run happen at
+          all: the allowance is counted per <em>address</em> and shared by every free model, so a model that
+          just refused is not really "broken" — it is out of allowance on that address and fine on the next.
+          If a model does refuse mid-run for allowance reasons, the app asks the <em>same</em> model again from
+          the next address before moving on.
+        </p>
+        <p class="muted small">
+          <strong>Wipe traces after every run</strong> (also on) expires every cookie this page's origin can
+          see, clears web storage, every cache bucket, the browser's resource-timing rows (the list of URLs it
+          contacted) and the quota records the run wrote. Your clip library and settings live in this
+          browser's own IndexedDB and are deliberately kept.
+        </p>
+        <p class="muted small">
+          What it cannot do: delete a cookie that <em>another</em> origin set — huggingface.co's cookies belong
+          to huggingface.co and no page here may touch them. That is why every request the app makes is sent
+          with <span class="mono">credentials: "omit"</span> and no referrer: no cookie is ever sent to a
+          model, and none is created because of a run in the first place.
+        </p>
+        <p class="muted small">
+          <strong>Reset</strong> (the button in the Studio header) is the same wipe on demand, plus the two
+          things a single wipe cannot do: it forgets the router's record of which routes refused, and it steps
+          to a different address. It can also clear the studio controls, and — if you ask it to — the saved
+          library. A run that the whole pool <em>blocks</em> triggers the same reset by itself
+          (Settings → <em>Reset automatically when a run is blocked</em>), so pressing Generate again starts
+          from a clean browser and a fresh address rather than from the wall the last run hit.
+        </p>
+      </section>
+
+      <section class="set-block">
+        <h4>Option A — a one-click Cloudflare Worker <span class="badge badge-free">recommended</span></h4>
+        <ol class="steps">
+          <li>Sign in (free) at <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">dash.cloudflare.com</a>.</li>
+          <li><strong>Workers &amp; Pages → Create → Worker</strong>, give it any name, <strong>Deploy</strong>.</li>
+          <li><strong>Edit code</strong>, delete everything, paste the code below, <strong>Deploy</strong>.</li>
+          <li>Copy the <span class="mono">https://…workers.dev</span> address it gives you.</li>
+          <li>Paste it into <strong>My relays</strong> above, set the rotation to <em>Rotate after every generation</em>, and press <strong>Check addresses</strong> — it should answer with an address that isn't yours.</li>
+        </ol>
+        <p class="muted small">The free plan allows 100,000 requests a day, so it will never be the thing that runs out.</p>
+        <pre class="code-block mono" id="relayWorkerPre"></pre>
+        <div class="key-row" style="margin-top:8px">
+          <button type="button" id="copyWorkerBtn" class="btn btn-tiny">Copy the code</button>
+        </div>
+      </section>
+
+      <section class="set-block">
+        <h4>Option B — you may already have one</h4>
+        <p class="muted small">
+          Your own AIVideoGen GPU server (Colab, Kaggle, laptop) already serves
+          <span class="mono">/api/relay</span>, so its address is a relay you control. Add it under
+          <strong>My relays</strong> as well and you get two addresses for free; start a second Colab session
+          and you have three.
+        </p>
+      </section>
+
+      <section class="set-block">
+        <h4>Option C — a VPN for the whole browser <span class="badge badge-key">install needed</span></h4>
+        <p class="muted small">
+          A web page cannot switch on a VPN — only your device can. If you want <em>everything</em> on this
+          machine to change address, these are free, open source and take a minute:
+        </p>
+        <ul class="steps">
+          <li><strong>Cloudflare WARP (1.1.1.1)</strong> — free, no account, one toggle, works on phones and desktops.</li>
+          <li><strong>Proton VPN Free</strong> — open-source clients, free servers, no data cap (speed limited).</li>
+          <li><strong>WireGuard</strong> — the open-source tunnel itself, if you have a free config from anywhere.</li>
+          <li><strong>Tor Browser</strong> — strongest untracing, much slower; fine for the browser, not for big uploads.</li>
+        </ul>
+        <p class="muted small">
+          Honest note: with a VPN, changing server means disconnecting and reconnecting, so the rotation above
+          still does the job better for this app — and it needs nothing installed.
+        </p>
+      </section>
+
+      <section class="set-block">
+        <h4>Can this really be unlimited?</h4>
+        <ol class="steps">
+          <li><strong>Rotation</strong> spreads the free pool's per-address allowance over as many addresses as you can add — a Cloudflare Worker, each of your GPU servers, and one worker per account if you have more than one.</li>
+          <li><strong>Your own GPU server</strong> has no quota at all, no per-run cost and no third party. This is the real answer, and it is already built: Settings → Where the rendering happens.</li>
+          <li><strong>The on-device renderer</strong> works with the internet unplugged, forever, for free.</li>
+        </ol>
+        <p class="muted small">
+          The app always walks that ladder instead of erroring out, so a run always produces something.
+        </p>
+      </section>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Reset modal ===== -->
+<dialog id="resetDlg" class="modal">
+  <form method="dialog" class="modal-inner">
+    <header class="modal-head">
+      <h3>Reset</h3>
+      <button id="resetDlgCloseBtn" class="btn btn-tiny" value="close">Close</button>
+    </header>
+    <div class="modal-body">
+      <p class="muted small">
+        Reset clears the records of what has already happened and starts the next run from a different
+        address — the fastest way out of “the pool refused everything”. The free allowance is metered per
+        <em>address</em>, so a clean browser <em>plus</em> a new address is a new allowance. Your API keys and
+        your settings are never touched.
+      </p>
+      <p id="resetDlgState" class="model-note"></p>
+      <label class="switch-row"><input type="checkbox" id="resetParamsChk"> <span>Reset the studio controls <span class="muted">(clear the picture and prompt, and put the camera, style, size and both generator switches back to default)</span></span></label>
+      <label class="switch-row"><input type="checkbox" id="resetTracesChk"> <span>Wipe the traces <span class="muted">(cookies this origin can see, web storage, every cache bucket, the browser's resource-timing rows, the model bench, and the router's memory of which routes refused)</span></span></label>
+      <label class="switch-row"><input type="checkbox" id="resetRotateChk"> <span>Step to a different address <span class="muted">(the half that actually buys a fresh allowance — needs a relay or a VPN; with only one address it changes nothing)</span></span></label>
+      <label class="switch-row"><input type="checkbox" id="resetLibraryChk"> <span>Also delete the saved clip library <span class="muted">(off by default — this is your own work. An automatic reset never does this.)</span></span></label>
+      <div class="key-row" style="margin-top:12px">
+        <button type="button" id="resetDlgCancelBtn" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="resetDlgGoBtn" class="btn btn-danger">Reset</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script type="text/plain" id="relayWorkerSrc">
+// AIVideoGen relay - deploy with Cloudflare Workers (free), paste as the Worker code.
+export default {
+  async fetch(request) {
+    const cors = {
+      "access-control-allow-origin": "*",
+      "access-control-allow-headers": "*",
+      "access-control-allow-methods": "GET,POST,OPTIONS",
+      "access-control-max-age": "86400",
+    };
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+
+    const incoming = new URL(request.url);
+    const target = incoming.searchParams.get("url");
+    if (!target) return reply(JSON.stringify({ error: "missing ?url=" }), 400, cors);
+    if (!/^https:\/\//i.test(target)) return reply(JSON.stringify({ error: "https only" }), 400, cors);
+
+    const method = request.headers.get("x-relay-method") || "GET";
+    let headers = {};
+    try { headers = JSON.parse(request.headers.get("x-relay-headers") || "{}"); } catch (e) {}
+    const body = method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer();
+
+    const upstream = await fetch(target, { method: method, headers: headers, body: body, redirect: "follow" });
+    const out = new Headers(upstream.headers);
+    out.set("access-control-allow-origin", "*");
+    out.set("access-control-expose-headers", "*");
+    out.delete("content-encoding");
+    out.delete("content-length");
+    return new Response(upstream.body, { status: upstream.status, headers: out });
+  },
+};
+
+function reply(text, status, cors) {
+  const h = new Headers(cors);
+  h.set("content-type", "application/json");
+  return new Response(text, { status: status, headers: h });
+}
+</script>
+
+<!-- ===== Guide: tutor, feedback, owner insight ===== -->
+<button id="tutorFab" type="button" title="Ask the AI tutor"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 2.2 19.3 6.4v8.2L12 18.8 4.7 14.6V6.4z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><text x="12" y="15.4" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff">?</text></svg></button>
+<div id="tutorTip" hidden></div>
+<div id="tutorAsk" hidden>
+  <div class="ask-head"><span>AI Tutor — ask anything</span><button id="tutorAskClose" class="btn btn-tiny" type="button">×</button></div>
+  <div id="tutorAskOut"></div>
+  <div class="ask-row">
+    <input id="tutorAskInput" type="text" placeholder="e.g. how do I rotate my address?" autocomplete="off">
+    <button id="tutorAskSend" class="btn btn-primary btn-tiny" type="button">Ask</button>
+  </div>
+</div>
+
+<dialog id="guideFirstRun" class="modal">
+  <form method="dialog" class="modal-inner guide-firstrun">
+    <h3>Welcome — how do you want to start?</h3>
+    <p class="muted small">New here? Get the 2-minute tutorial with hover tips on. Been here before? Jump straight in — the <strong>?</strong> tutor button follows you everywhere.</p>
+    <div class="guide-firstbtns">
+      <button type="button" id="guideNewBtn">I am new — show me</button>
+      <button type="button" id="guideRetBtn">I am returning</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="ownerGate" class="modal">
+  <form method="dialog" class="modal-inner guide-firstrun">
+    <h3 id="ownerGateTitle">Owner unlock</h3>
+    <p class="muted small" id="ownerGateMsg"></p>
+    <div class="field">
+      <label class="lbl" for="ownerPinInput">Owner PIN</label>
+      <input id="ownerPinInput" class="mono" type="password" placeholder="at least 4 characters" autocomplete="off">
+    </div>
+    <div class="key-row">
+      <button type="button" id="ownerPinOk" class="btn btn-primary btn-tiny">Unlock</button>
+      <button type="button" id="ownerPinCancel" class="btn btn-ghost btn-tiny">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="ownerBox" hidden>
+  <div class="owner-inner">
+    <div class="row-between">
+      <h2>Owner insight — private</h2>
+      <div>
+        <button id="ownerRefreshBtn" class="btn btn-tiny" type="button">Refresh</button>
+        <button id="ownerExportBtn" class="btn btn-tiny" type="button">Export stats</button>
+        <button id="ownerCloseBtn" class="btn btn-tiny" type="button">Close</button>
+      </div>
+    </div>
+    <p class="muted small">Only visible after owner PIN. Never linked anywhere in the public UI — entry is logo ×7 or <code>#owner</code>. Public users see nothing of this panel.</p>
+    <div class="owner-grid">
+      <div class="owner-card">
+        <h4>This device — event counts</h4>
+        <div id="ownerStats" class="mono tiny">—</div>
+      </div>
+      <div class="owner-card">
+        <h4>All visitors — live activity</h4>
+        <p class="muted small" style="margin:0 0 8px">Anonymous event kinds only — no prompts, images, IPs, or text ever leave the device.</p>
+        <div id="ownerTelBox">Loading…</div>
+      </div>
+    </div>
+    <div class="owner-card" style="margin-top:12px">
+      <h4>Feedback wall (same as public)</h4>
+      <div id="ownerFbBox">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<div id="telHolder" aria-hidden="true"></div>
+
+<script type="module" src="src/app.js"></script>
+<script type="module" src="src/storyboard-studio.js"></script>
+<script type="module" src="src/v4-resume.js"></script>
+<script type="module" src="src/chat.js"></script>
+<script type="module" src="src/reader.js"></script>
+<script type="module" src="src/project.js"></script>
+<script type="module" src="src/voice-video.js"></script>
+<script type="module" src="src/camcorder.js"></script>
+<script type="module" src="src/dictate.js"></script>
+<script type="module" src="src/photo-voice.js"></script>
+<script type="module" src="src/voice-import.js"></script>
+<script type="module" src="src/editor.js"></script>
+<script type="module" src="src/editor-agent.js"></script>
+<script type="module" src="src/guide.js"></script>
+</body>
+</html>
+
+
+
