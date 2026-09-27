@@ -1180,6 +1180,9 @@
         <!-- Subtabs -->
         <nav class="ls-subnav">
           <button type="button" class="ls-subtab on" data-target="lsTabCam">📷 Camera</button>
+          <button type="button" class="ls-subtab" data-target="lsTabSocial">📺 Social &amp; YouTube</button>
+          <button type="button" class="ls-subtab" data-target="lsTabHud">💬 Prompt &amp; HUD</button>
+          <button type="button" class="ls-subtab" data-target="lsTabPlugin">🧩 Browser Plugin</button>
           <button type="button" class="ls-subtab" data-target="lsTabBeauty">✨ Beautify</button>
           <button type="button" class="ls-subtab" data-target="lsTabColor">🎨 Color LUT</button>
           <button type="button" class="ls-subtab" data-target="lsTabChroma">🟩 Chroma Key</button>
@@ -1219,6 +1222,169 @@
             </label>
             <div style="display:flex;gap:8px;margin-top:4px">
               <button id="lsConnectScreenBtn" type="button" class="btn btn-small btn-primary" style="flex:1">🖥️ Connect Screen Share</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Media & YouTube Feeds Tab -->
+        <div id="lsTabSocial" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <span style="font-size:12px;font-weight:700;color:#ef4444">📺 YouTube Music &amp; Stream Feeds</span>
+            
+            <!-- YouTube Importer -->
+            <div class="ls-yt-box">
+              <span style="font-size:11px;font-weight:600">Import YouTube Playlist or Song</span>
+              <div style="display:flex;gap:6px">
+                <input type="text" id="lsYtUrlInput" class="form-control" placeholder="https://www.youtube.com/watch?v=... or playlist ID" style="font-size:11px;flex:1">
+                <button type="button" id="lsYtImportBtn" class="btn btn-small btn-primary">Import</button>
+              </div>
+
+              <!-- Quick YouTube Preset Stations -->
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:10px">
+                <span style="color:var(--muted)">Quick Stations:</span>
+                <button type="button" class="btn btn-tiny ls-yt-preset-btn" data-url="https://www.youtube.com/watch?v=jfKfPfyJRdk" data-title="Lofi Girl - Relax / Study Beats">☕ Lofi Beats</button>
+                <button type="button" class="btn btn-tiny ls-yt-preset-btn" data-url="https://www.youtube.com/watch?v=4xDzrJKXOOY" data-title="Synthwave Radio - Chill Coding">🌆 Synthwave</button>
+                <button type="button" class="btn btn-tiny ls-yt-preset-btn" data-url="https://www.youtube.com/watch?v=5qap5aO4i9A" data-title="Lofi Hip Hop - Deep Focus">🎧 Deep Focus</button>
+              </div>
+
+              <!-- Currently Loaded Track -->
+              <div id="lsYtTrackDisplay" class="ls-yt-track-card">
+                <div>
+                  <div style="font-weight:700;color:#ef4444" id="lsYtTrackTitle">Lofi Girl - Relax / Study Beats</div>
+                  <div style="font-size:9.5px;color:var(--muted)" id="lsYtTrackArtist">YouTube Live Audio Stream · Ready to broadcast</div>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center">
+                  <button type="button" id="lsYtPlayPauseBtn" class="btn btn-tiny">▶ Play</button>
+                  <button type="button" id="lsYtNextBtn" class="btn btn-tiny">⏭ Next</button>
+                </div>
+              </div>
+
+              <!-- YouTube Volume -->
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px">
+                <span>Stream Music Volume:</span>
+                <input type="range" class="ls-range" id="lsYtVolumeRange" min="0" max="100" value="65" style="max-width:140px">
+                <span class="mono tiny" id="lsYtVolumeVal">65%</span>
+              </div>
+            </div>
+
+            <!-- Known Social Media Broadcast & Login Integrations -->
+            <div style="margin-top:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:11.5px;font-weight:700">🌐 Social Media Broadcast Platforms</span>
+                <span class="mono tiny" style="color:var(--muted)">Multi-Stream Ready</span>
+              </div>
+
+              <div class="ls-social-grid">
+                <div class="ls-platform-card connected" id="lsPlatCardYt">
+                  <div class="ls-platform-head">
+                    <span style="color:#ef4444">YouTube</span>
+                    <span class="ls-platform-status" id="lsPlatStatusYt">Connected</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--text)" id="lsPlatHandleYt">@OneCreativeStudio</div>
+                  <button type="button" class="btn btn-tiny" id="lsPlatBtnYt" style="margin-top:2px">Configure</button>
+                </div>
+
+                <div class="ls-platform-card" id="lsPlatCardTwitch">
+                  <div class="ls-platform-head">
+                    <span style="color:#a855f7">Twitch</span>
+                    <span class="ls-platform-status" id="lsPlatStatusTwitch">Disconnected</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--muted)" id="lsPlatHandleTwitch">Not logged in</div>
+                  <button type="button" class="btn btn-tiny" id="lsPlatBtnTwitch" style="margin-top:2px">Connect</button>
+                </div>
+
+                <div class="ls-platform-card" id="lsPlatCardKick">
+                  <div class="ls-platform-head">
+                    <span style="color:#22c55e">Kick</span>
+                    <span class="ls-platform-status" id="lsPlatStatusKick">Disconnected</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--muted)" id="lsPlatHandleKick">Not logged in</div>
+                  <button type="button" class="btn btn-tiny" id="lsPlatBtnKick" style="margin-top:2px">Connect</button>
+                </div>
+
+                <div class="ls-platform-card" id="lsPlatCardX">
+                  <div class="ls-platform-head">
+                    <span>X / Twitter</span>
+                    <span class="ls-platform-status" id="lsPlatStatusX">Disconnected</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--muted)" id="lsPlatHandleX">Not logged in</div>
+                  <button type="button" class="btn btn-tiny" id="lsPlatBtnX" style="margin-top:2px">Connect</button>
+                </div>
+              </div>
+
+              <!-- Live Chat Overlay Toggle -->
+              <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text);margin-top:10px;cursor:pointer">
+                <input type="checkbox" id="lsLiveChatOverlayToggle" checked>
+                <span>Display Interactive Audience Chat Overlay on Broadcast Canvas</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live AI Prompt & Training HUD Tab -->
+        <div id="lsTabHud" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;font-weight:700;color:#38bdf8">💬 Live Prompt &amp; Training Period HUD</span>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;cursor:pointer">
+                <input type="checkbox" id="lsHudToggle" checked>
+                <span>Enable HUD</span>
+              </label>
+            </div>
+            <span style="font-size:10.5px;color:var(--muted)">Displays your active AI prompt iterations, model name, and real-time training telemetry directly on the stream video.</span>
+
+            <div class="ls-hud-card">
+              <label style="font-size:10.5px;font-weight:600;color:var(--muted)">Broadcast AI Prompt</label>
+              <textarea id="lsHudPromptInput" class="form-control" rows="2" style="font-size:11px" placeholder="Enter current AI prompt to show on stream...">Futuristic android portrait with glowing chromatic ocular implants · Wan2.1 InP 1.3B</textarea>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+                <div>
+                  <label style="font-size:10px;font-weight:600;color:var(--muted)">Model Identity</label>
+                  <input type="text" id="lsHudModelInput" class="form-control" value="Ankan-Wan2.1-FineTune-v1" style="font-size:10.5px">
+                </div>
+                <div>
+                  <label style="font-size:10px;font-weight:600;color:var(--muted)">Training Status</label>
+                  <select id="lsHudTrainingSelect" class="form-control" style="font-size:10.5px">
+                    <option value="active" selected>Epoch 4/5 · Loss: 0.042 (Training)</option>
+                    <option value="converged">Validation Loss Converged (Ready)</option>
+                    <option value="decomposing">Signal Decomposing (Codec)</option>
+                    <option value="standby">Model Standby</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;font-size:10.5px">
+                <button type="button" id="lsHudSyncBtn" class="btn btn-tiny btn-primary">🔄 Sync Prompt from AI Model Lab</button>
+                <span class="mono tiny" style="color:#22c55e">● Live Canvas HUD Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Browser-Based Plugin Tab -->
+        <div id="lsTabPlugin" class="ls-tab-pane" hidden>
+          <div class="ls-tune-group">
+            <div class="ls-plugin-card">
+              <div class="ls-plugin-header">
+                <span class="ls-plugin-title">🧩 OneStream Broadcaster Extension</span>
+                <span class="badge" style="background:#0284c7;color:#fff">v2.4 Manifest V3</span>
+              </div>
+              <span style="font-size:11px;color:var(--text)">Browser-based plugin for Chrome, Edge, Brave, and Firefox. Enables full desktop monitor capture so viewers can see your entire workflow, prompt engineering, and training periods in real time.</span>
+
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button type="button" id="lsDownloadPluginBtn" class="btn btn-primary btn-small" style="font-weight:700">📥 Download OneStream Plugin (.zip)</button>
+                <button type="button" id="lsPluginCaptureBtn" class="btn btn-small">🖥️ Capture Total Screen Now</button>
+              </div>
+
+              <div class="ls-plugin-steps">
+                <strong style="color:var(--text);display:block;margin-bottom:4px">How to Deploy &amp; Install in 30 Seconds:</strong>
+                1. Click <b>Download OneStream Plugin (.zip)</b> above.<br>
+                2. Unzip <code>OneStream-Broadcaster-Plugin.zip</code> on your computer.<br>
+                3. Open <code>chrome://extensions</code> (or <code>edge://extensions</code>) in your browser.<br>
+                4. Toggle on <b>Developer mode</b> (top-right switch).<br>
+                5. Click <b>Load unpacked</b> and select the unzipped folder.<br>
+                6. Pin the plugin icon and start sharing your total screen!
+              </div>
             </div>
           </div>
         </div>
@@ -1491,6 +1657,28 @@
           </div>
         </div>
 
+        <!-- Sharable Live Stream Link Box -->
+        <div class="ls-share-box">
+          <div class="ls-share-header">
+            <span>🔗 Public Sharable Livestream Link</span>
+            <span class="badge" style="background:rgba(34,197,94,0.2);color:#22c55e">Direct WebRTC / HLS</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)">Share this URL with your viewers, fans, and collaborators to let them watch your live AI training session and prompt workflow in real time.</span>
+
+          <div class="ls-share-row">
+            <input type="text" id="lsSharableLinkInput" class="ls-share-url-input" readonly value="https://ais-stream.live/watch?stream=one-ai-studio">
+            <button type="button" id="lsCopyShareLinkBtn" class="btn btn-small btn-primary" title="Copy stream link to clipboard">📋 Copy Link</button>
+            <button type="button" id="lsOpenViewerBtn" class="btn btn-small" title="Preview stream as an audience viewer">👁️ View Stream (Audience Mode)</button>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
+            <span style="font-size:10.5px;color:var(--muted)">Share directly:</span>
+            <button type="button" class="btn btn-tiny ls-share-social-btn" data-plat="x">Post on 𝕏</button>
+            <button type="button" class="btn btn-tiny ls-share-social-btn" data-plat="telegram">Telegram</button>
+            <button type="button" class="btn btn-tiny ls-share-social-btn" data-plat="whatsapp">WhatsApp</button>
+          </div>
+        </div>
+
         <!-- Social Media & Broadcast Stream Target Helper -->
         <details class="fold">
           <summary>📡 Broadcast Platform Stream Settings (YouTube, Twitch, Facebook, RTMP)</summary>
@@ -1519,6 +1707,84 @@
           </div>
         </details>
       </section>
+    </div>
+
+    <!-- Audience Stream Viewer Modal (Simulated Live Broadcast for Fans & Viewers) -->
+    <div id="lsViewerModal" class="ls-viewer-modal-backdrop" hidden>
+      <div class="ls-viewer-modal">
+        <!-- Main Video Screen -->
+        <div class="ls-viewer-stage">
+          <div class="ls-viewer-video-holder">
+            <canvas id="lsViewerMirrorCanvas"></canvas>
+            <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px;align-items:center">
+              <span class="badge live" style="background:#ef4444;color:#fff;font-weight:700">🔴 LIVE</span>
+              <span class="badge" style="background:rgba(0,0,0,0.6);color:#fff" id="lsViewerCountTag">👥 184 viewers</span>
+            </div>
+          </div>
+          <!-- Live AI Prompt & Training HUD Bar for Viewers -->
+          <div class="ls-viewer-hud-card">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;font-weight:700;color:#38bdf8" id="lsViewerModelTag">🧬 Model: Ankan-Wan2.1-FineTune-v1</span>
+              <span class="mono tiny" style="color:#22c55e" id="lsViewerStatusTag">● Training Active (Epoch 4/5)</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text)" id="lsViewerPromptText">
+              <strong>Active Prompt:</strong> "Futuristic android portrait with glowing chromatic ocular implants · Wan2.1 InP 1.3B"
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Audience Chat Sidecar -->
+        <div class="ls-viewer-chat">
+          <div class="ls-viewer-chat-head">
+            <span>💬 Live Audience Chat</span>
+            <button type="button" id="lsCloseViewerBtn" class="btn btn-tiny">✕ Close</button>
+          </div>
+          <div class="ls-viewer-chat-messages" id="lsViewerChatList">
+            <div class="ls-chat-msg">
+              <span class="user">@CyberDev</span>
+              <span class="text">Welcome everyone! Watching the AI model training live 🚀</span>
+            </div>
+            <div class="ls-chat-msg">
+              <span class="user">@NeuralArt</span>
+              <span class="text">That prompt iteration looks super clean!</span>
+            </div>
+            <div class="ls-chat-msg">
+              <span class="user">@WanCreator</span>
+              <span class="text">Can you share the checkpoint when the training completes?</span>
+            </div>
+          </div>
+          <div class="ls-viewer-chat-input-bar">
+            <input type="text" id="lsViewerChatInput" class="form-control" placeholder="Send a message to stream..." style="font-size:11px">
+            <button type="button" id="lsViewerSendBtn" class="btn btn-tiny btn-primary">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Login / Connect Modal -->
+    <div id="lsLoginModal" class="ls-viewer-modal-backdrop" hidden>
+      <div style="background:#0b1122;border:1px solid var(--line);border-radius:16px;width:100%;max-width:440px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:14px;font-weight:700" id="lsLoginModalTitle">Connect Platform Account</span>
+          <button type="button" id="lsCloseLoginModalBtn" class="btn btn-tiny">✕</button>
+        </div>
+        <span style="font-size:11.5px;color:var(--muted)" id="lsLoginModalDesc">Authenticate your channel to broadcast your AI training and screen feeds directly to this platform.</span>
+
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Channel / Account Handle</label>
+          <input type="text" id="lsLoginHandleInput" class="form-control" placeholder="@username or channel name">
+        </div>
+
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text);display:block;margin-bottom:4px">Stream Key (Optional)</label>
+          <input type="password" id="lsLoginKeyInput" class="form-control" placeholder="Enter stream key or leave blank for OAuth token">
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button type="button" id="lsCancelLoginBtn" class="btn btn-small">Cancel</button>
+          <button type="button" id="lsConfirmLoginBtn" class="btn btn-small btn-primary">Connect &amp; Authenticate</button>
+        </div>
+      </div>
     </div>
   </main>
 
