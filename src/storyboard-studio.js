@@ -664,7 +664,10 @@ async function compileVideo() {
     pv.parentElement.hidden = false;
     pv.parentElement.style.aspectRatio = W + " / " + H;
     pv.onloadedmetadata = () => { try { pv.parentElement.style.aspectRatio = pv.videoWidth + " / " + pv.videoHeight; } catch {} };
-    await saveBlobToLibrary({ kind: "final", tab: "storyboard", blob, filename: (slugName(S.name, "story").slice(0, 40) || "story") + "." + (fmt === "gif" ? "webm" : fmt), prompt: S.name + " compiled video", extra: { provider: "storyboard-video", providerLabel: "Storyboard video", aspect: S.ratio, story: S.name, cat: S.cat, name: S.name, userCat: libCatOf() } });
+    const dl = $("sbVideoDlBtn");
+    const outFname = (slugName(S.name, "story").slice(0, 40) || "story") + "." + (fmt === "gif" ? "webm" : fmt);
+    if (dl) { dl.href = url; dl.download = outFname; }
+    await saveBlobToLibrary({ kind: "final", tab: "storyboard", blob, filename: outFname, prompt: S.name + " compiled video", extra: { provider: "storyboard-video", providerLabel: "Storyboard video", aspect: S.ratio, story: S.name, cat: S.cat, name: S.name, userCat: libCatOf() } });
     toast("Video compiled + auto-saved to Library");
   } catch (e) { toast("Compile failed: " + (e.message || e)); }
   finally { S.compiling = false; $("sbCompileBtn").disabled = false; $("sbBusy").hidden = true; }

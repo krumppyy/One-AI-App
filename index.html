@@ -930,7 +930,12 @@
       <div class="screen sb-viewer-wrap"><div id="sbViewer" class="sb-viewer"></div></div>
       <div class="sticker-bar" id="sbStickerBar" style="margin-top:8px" title="Stickers for the previewed frame"></div>
       <div id="sbBoard" class="sb-board" data-view="medium"></div>
-      <div class="screen sb-player-wrap" hidden><video id="sbVideoOut" controls playsinline hidden></video></div>
+      <div class="screen sb-player-wrap" hidden>
+        <video id="sbVideoOut" controls playsinline hidden></video>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+          <a id="sbVideoDlBtn" class="btn btn-primary btn-tiny" download="storyboard-video.mp4" style="text-decoration:none">Download compiled video</a>
+        </div>
+      </div>
     </section>
   </main>
 

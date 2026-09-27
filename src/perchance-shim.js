@@ -74,7 +74,7 @@
     const dbPromise = new Promise((resolve) => {
       try {
         if (typeof indexedDB === "undefined") return resolve(null);
-        const req = indexedDB.open("AMT_KV_DB", 2);
+        const req = indexedDB.open("AMT_KV_DB", 3);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
           if (!db.objectStoreNames.contains("kv")) {
@@ -90,6 +90,24 @@
 
     async function get(key) {
       if (memory.has(key)) return memory.get(key);
+
+      const db = await dbPromise;
+      if (db) {
+        try {
+          const val = await new Promise((res) => {
+            const tx = db.transaction("kv", "readonly");
+            const store = tx.objectStore("kv");
+            const req = store.get(`${folderName}:${key}`);
+            req.onsuccess = () => res(req.result);
+            req.onerror = () => res(undefined);
+          });
+          if (val !== undefined) {
+            memory.set(key, val);
+            return val;
+          }
+        } catch {}
+      }
+
       try {
         const lsKey = `kv_${folderName}_${key}`;
         const ls = localStorage.getItem(lsKey);
@@ -100,45 +118,36 @@
         }
       } catch {}
 
-      const db = await dbPromise;
-      if (!db) return memory.get(key);
-      return new Promise((res) => {
-        try {
-          const tx = db.transaction("kv", "readonly");
-          const store = tx.objectStore("kv");
-          const req = store.get(`${folderName}:${key}`);
-          req.onsuccess = () => {
-            const val = req.result;
-            if (val !== undefined) memory.set(key, val);
-            res(val);
-          };
-          req.onerror = () => res(memory.get(key));
-        } catch {
-          res(memory.get(key));
-        }
-      });
+      return undefined;
     }
 
     async function set(key, val) {
       memory.set(key, val);
-      try {
-        const lsKey = `kv_${folderName}_${key}`;
-        localStorage.setItem(lsKey, JSON.stringify(val));
-      } catch {}
 
       const db = await dbPromise;
-      if (!db) return val;
-      return new Promise((res) => {
+      if (db) {
         try {
-          const tx = db.transaction("kv", "readwrite");
-          const store = tx.objectStore("kv");
-          const req = store.put(val, `${folderName}:${key}`);
-          req.onsuccess = () => res(val);
-          req.onerror = () => res(val);
-        } catch {
-          res(val);
+          await new Promise((res) => {
+            const tx = db.transaction("kv", "readwrite");
+            const store = tx.objectStore("kv");
+            const req = store.put(val, `${folderName}:${key}`);
+            req.onsuccess = () => res(val);
+            req.onerror = () => res(val);
+          });
+        } catch {}
+      }
+
+      // Safe localStorage sync for small primitives/non-blob objects
+      try {
+        if (!(val instanceof Blob) && typeof val !== "function") {
+          const str = JSON.stringify(val);
+          if (str && str.length < 200000) {
+            localStorage.setItem(`kv_${folderName}_${key}`, str);
+          }
         }
-      });
+      } catch {}
+
+      return val;
     }
 
     async function del(key) {
@@ -163,6 +172,26 @@
 
     async function keys() {
       const list = new Set(memory.keys());
+      const db = await dbPromise;
+      if (db) {
+        try {
+          await new Promise((res) => {
+            const tx = db.transaction("kv", "readonly");
+            const store = tx.objectStore("kv");
+            const req = store.getAllKeys();
+            req.onsuccess = () => {
+              (req.result || []).forEach((k) => {
+                const str = String(k);
+                if (str.startsWith(`${folderName}:`)) {
+                  list.add(str.slice(`${folderName}:`.length));
+                }
+              });
+              res();
+            };
+            req.onerror = () => res();
+          });
+        } catch {}
+      }
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
@@ -171,27 +200,19 @@
           }
         }
       } catch {}
-      const db = await dbPromise;
-      if (!db) return Array.from(list);
-      return new Promise((res) => {
-        try {
-          const tx = db.transaction("kv", "readonly");
-          const store = tx.objectStore("kv");
-          const req = store.getAllKeys();
-          req.onsuccess = () => {
-            (req.result || []).forEach((k) => {
-              const str = String(k);
-              if (str.startsWith(`${folderName}:`)) {
-                list.add(str.slice(`${folderName}:`.length));
-              }
-            });
-            res(Array.from(list));
-          };
-          req.onerror = () => res(Array.from(list));
-        } catch {
-          res(Array.from(list));
+      return Array.from(list);
+    }
+
+    async function entries() {
+      const allKeys = await keys();
+      const result = [];
+      for (const k of allKeys) {
+        const v = await get(k);
+        if (v !== undefined) {
+          result.push([k, v]);
         }
-      });
+      }
+      return result;
     }
 
     async function deleteMany(keysToDelete) {
@@ -211,7 +232,12 @@
       return result;
     }
 
-    return { get, set, delete: del, del, keys, deleteMany, list };
+    async function clear() {
+      const allKeys = await keys();
+      await deleteMany(allKeys);
+    }
+
+    return { get, set, delete: del, del, keys, entries, deleteMany, list, clear };
   }
 
   root.kv = new Proxy({}, {
@@ -288,7 +314,12 @@
       if (!res.ok) throw new Error("Image fetch failed");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      return { blob, url, seed };
+      const dataUrl = await new Promise((resD) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resD(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      return { blob, url, dataUrl, seed, inputs: { prompt, seed } };
     } catch (err) {
       const canvas = document.createElement("canvas");
       canvas.width = 512;
@@ -306,8 +337,9 @@
       ctx.fillStyle = "#8e9bb0";
       ctx.font = "14px sans-serif";
       ctx.fillText(prompt.slice(0, 45), 256, 280);
+      const dataUrl = canvas.toDataURL("image/png");
       const blob = await new Promise((r) => canvas.toBlob(r, "image/png"));
-      return { blob, url: URL.createObjectURL(blob), seed };
+      return { blob, url: URL.createObjectURL(blob), dataUrl, seed, inputs: { prompt, seed } };
     }
   };
 
