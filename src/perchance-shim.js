@@ -331,10 +331,11 @@
     div.innerHTML = `
       <div style="font-size:12px;opacity:0.75;margin-bottom:8px">💬 Feedback channel: <strong>${opts.channel || "general"}</strong></div>
       <div style="font-size:13px;line-height:1.5;opacity:0.9">
-        Community feedback is active. Feel free to leave feature requests, suggestions, and feedback!
+        Community feedback & stats stream are active.
       </div>
     `;
-    if (opts.onLoad) setTimeout(opts.onLoad, 50);
+    div.toString = function () { return div.outerHTML; };
+    if (opts.onLoad) setTimeout(() => { try { opts.onLoad([]); } catch {} }, 50);
     return div;
   };
 

@@ -148,7 +148,7 @@ const state = {
   partial: null,
   progress: { base: 0, span: 0, segEstMs: 60000, segStart: 0 },
   cooldowns: {},
-  theme: "green-black",
+  theme: "minimal-dark",
   /** Set once the content-safety panel is wired, so change handlers can redraw the audit. */
   safetyReady: false,
   imgMode: "t2i",
@@ -439,27 +439,45 @@ function buildViewSeg(el, cur, onPick, views) {
 
 /* --------------------------------------------------------------- theming */
 
-const THEMES = ["green-black", "blue-black", "cherry-black", "orange-black", "yellow-black", "total-dark", "mono-red", "blue-white", "cherry-white", "teal-white", "purple-white"];
+const THEMES = ["minimal-dark", "cyber-emerald", "nordic-frost", "paper-light"];
 const THEME_LABELS = {
-  "green-black": "Green Black", "blue-black": "Blue Black", "cherry-black": "Cherry Black",
-  "orange-black": "Orange Black", "yellow-black": "Yellow Black", "total-dark": "Total Dark",
-  "mono-red": "Mono Red", "blue-white": "Blue White", "cherry-white": "Cherry White",
-  "teal-white": "Teal White", "purple-white": "Purple White",
+  "minimal-dark": "Minimal Obsidian (Dark)",
+  "cyber-emerald": "Cyber Emerald (Dark)",
+  "nordic-frost": "Nordic Slate (Dark)",
+  "paper-light": "Studio Paper (Light)",
 };
 const THEME_DOTS = {
-  "green-black": "#22c55e", "blue-black": "#38bdf8", "cherry-black": "#f43f5e",
-  "orange-black": "#fb923c", "yellow-black": "#facc15", "total-dark": "#f5f5f5",
-  "mono-red": "#ff2323", "blue-white": "#2563eb", "cherry-white": "#e11d48",
-  "teal-white": "#0d9488", "purple-white": "#6d28d9",
+  "minimal-dark": "#94a3b8",
+  "cyber-emerald": "#10b981",
+  "nordic-frost": "#3b82f6",
+  "paper-light": "#f1f5f9",
 };
-const THEME_MIGRATE = { dark: "cherry-black", forest: "green-black", light: "cherry-white", violet: "purple-white", ocean: "blue-black", sunset: "orange-black" };
+const THEME_MIGRATE = {
+  "green-black": "cyber-emerald",
+  "blue-black": "nordic-frost",
+  "cherry-black": "minimal-dark",
+  "orange-black": "minimal-dark",
+  "yellow-black": "cyber-emerald",
+  "total-dark": "minimal-dark",
+  "mono-red": "minimal-dark",
+  "blue-white": "paper-light",
+  "cherry-white": "paper-light",
+  "teal-white": "paper-light",
+  "purple-white": "paper-light",
+  dark: "minimal-dark",
+  forest: "cyber-emerald",
+  light: "paper-light",
+  violet: "nordic-frost",
+  ocean: "nordic-frost",
+  sunset: "minimal-dark",
+};
 function applyTheme(theme) {
-  state.theme = THEMES.includes(theme) ? theme : "green-black";
+  state.theme = THEMES.includes(theme) ? theme : "minimal-dark";
   document.documentElement.dataset.theme = state.theme;
-  document.documentElement.dataset.mode = state.theme.endsWith("-white") ? "white" : "black";
+  document.documentElement.dataset.mode = state.theme === "paper-light" ? "white" : "black";
   const btn = $("themeBtn");
   if (btn) {
-    btn.innerHTML = state.theme.endsWith("-white") ? ICON_MOON : ICON_SUN;
+    btn.innerHTML = state.theme === "paper-light" ? ICON_MOON : ICON_SUN;
     btn.title = "Theme: " + (THEME_LABELS[state.theme] || state.theme) + " (click to change)";
     btn.setAttribute("aria-label", btn.title);
     btn.setAttribute("aria-haspopup", "menu");
@@ -5969,7 +5987,7 @@ async function init() {
   state.settings = await loadSettings();
   const s = state.settings;
 
-  let startTheme = s.theme || "green-black";
+  let startTheme = s.theme || "minimal-dark";
   if (THEME_MIGRATE[startTheme]) { startTheme = THEME_MIGRATE[startTheme]; saveSettings({ theme: startTheme }); }
   applyTheme(startTheme);
   state.aspect = s.aspect || "16:9";
