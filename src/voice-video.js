@@ -190,38 +190,169 @@ function chunkScript(text, max = 180) {
   return out.slice(0, 40);
 }
 
-async function fetchChunkAudio(chunk, tl) {
-  const url = "https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(chunk) + "&tl=" + tl + "&client=tw-ob";
-  const r = await root.superFetch(url);
-  if (!r.ok) throw new Error("tts " + r.status);
-  const buf = await r.arrayBuffer();
-  if (!buf?.byteLength) throw new Error("tts empty reply");
-  return buf;
+// Procedural Formant Voice Synthesizer (100% offline, zero-network, CPU-based in-browser Web Audio synthesis)
+async function synthesizeProceduralSpeechChunk(text, tl = "en", rate = 1, persona = "neutral") {
+  const sampleRate = 24000;
+  const words = String(text || "").trim().split(/\s+/).filter(Boolean);
+  const wordCount = Math.max(1, words.length);
+  const baseDuration = Math.max(0.65, (wordCount * 0.28) / Math.max(0.5, rate));
+  const totalSamples = Math.ceil(baseDuration * sampleRate);
+
+  const offCtx = new OfflineAudioContext(1, totalSamples, sampleRate);
+
+  let f0 = 145; // neutral base pitch (Hz)
+  if (persona === "masculine") f0 = 105;
+  else if (persona === "feminine") f0 = 225;
+
+  const osc = offCtx.createOscillator();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(f0, 0);
+
+  const stepTime = baseDuration / wordCount;
+  for (let i = 0; i < wordCount; i++) {
+    const t = i * stepTime;
+    const inflection = Math.sin(i * 1.3) * 12 + (i % 2 === 0 ? 8 : -6);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(60, f0 + inflection), t + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(60, f0), Math.min(baseDuration, t + stepTime * 0.8));
+  }
+
+  const warmth = offCtx.createBiquadFilter();
+  warmth.type = "lowpass";
+  warmth.frequency.value = 1400;
+
+  const f1 = offCtx.createBiquadFilter();
+  f1.type = "bandpass";
+  f1.frequency.value = 520;
+  f1.Q.value = 4.0;
+
+  const f2 = offCtx.createBiquadFilter();
+  f2.type = "bandpass";
+  f2.frequency.value = 1620;
+  f2.Q.value = 5.0;
+
+  const f3 = offCtx.createBiquadFilter();
+  f3.type = "bandpass";
+  f3.frequency.value = 2700;
+  f3.Q.value = 6.0;
+
+  const voiceGain = offCtx.createGain();
+  voiceGain.gain.setValueAtTime(0, 0);
+
+  for (let i = 0; i < wordCount; i++) {
+    const t = i * stepTime;
+    const syllDur = stepTime * 0.85;
+    voiceGain.gain.setValueAtTime(0.001, t);
+    voiceGain.gain.linearRampToValueAtTime(0.7, t + 0.04);
+    voiceGain.gain.setValueAtTime(0.7, t + syllDur * 0.7);
+    voiceGain.gain.exponentialRampToValueAtTime(0.001, t + syllDur);
+  }
+
+  const noiseBuf = offCtx.createBuffer(1, totalSamples, sampleRate);
+  const nd = noiseBuf.getChannelData(0);
+  for (let s = 0; s < totalSamples; s++) nd[s] = (Math.random() * 2 - 1) * 0.07;
+  const noise = offCtx.createBufferSource();
+  noise.buffer = noiseBuf;
+
+  const noiseFilt = offCtx.createBiquadFilter();
+  noiseFilt.type = "highpass";
+  noiseFilt.frequency.value = 3500;
+
+  const noiseGain = offCtx.createGain();
+  noiseGain.gain.setValueAtTime(0, 0);
+  for (let i = 0; i < wordCount; i++) {
+    const t = i * stepTime;
+    noiseGain.gain.setValueAtTime(0.001, t);
+    noiseGain.gain.linearRampToValueAtTime(0.24, t + 0.02);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  }
+
+  osc.connect(warmth);
+  warmth.connect(f1);
+  warmth.connect(f2);
+  warmth.connect(f3);
+
+  f1.connect(voiceGain);
+  f2.connect(voiceGain);
+  f3.connect(voiceGain);
+
+  noise.connect(noiseFilt);
+  noiseFilt.connect(noiseGain);
+  noiseGain.connect(voiceGain);
+
+  voiceGain.connect(offCtx.destination);
+
+  osc.start(0);
+  noise.start(0);
+  osc.stop(baseDuration);
+  noise.stop(baseDuration);
+
+  return await offCtx.startRendering();
 }
 
-async function genVoice(btnArg) {
+async function fetchChunkAudio(chunk, tl) {
+  // 1. Google Translate TTS tw-ob via superFetch
+  try {
+    const url1 = "https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(chunk) + "&tl=" + tl + "&client=tw-ob";
+    const r1 = await root.superFetch(url1);
+    if (r1.ok) {
+      const b1 = await r1.arrayBuffer();
+      if (b1?.byteLength > 80) return b1;
+    }
+  } catch {}
+
+  // 2. Google Translate TTS gtx via superFetch
+  try {
+    const url2 = "https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(chunk) + "&tl=" + tl + "&client=gtx";
+    const r2 = await root.superFetch(url2);
+    if (r2.ok) {
+      const b2 = await r2.arrayBuffer();
+      if (b2?.byteLength > 80) return b2;
+    }
+  } catch {}
+
+  // 3. /api/proxy server proxy fallback
+  try {
+    const url3 = `/api/proxy?url=${encodeURIComponent("https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(chunk) + "&tl=" + tl + "&client=tw-ob")}`;
+    const r3 = await fetch(url3);
+    if (r3.ok) {
+      const b3 = await r3.arrayBuffer();
+      if (b3?.byteLength > 80) return b3;
+    }
+  } catch {}
+
+  return null;
+}
+
+export async function genVoice(btnArg, forceSaveToLibrary = false) {
   if (genBusy) return;
   const text = $("voiceTextInput")?.value.trim() || "";
-  if (!text) { toast("Type a script first."); return; }
+  if (!text) { toast("Type a script/prompt first."); return; }
   const tl = genLang();
   const rate = genPersonaRate();
   const chunks = chunkScript(text);
-  if (!chunks.length) { toast("Type a script first."); return; }
+  if (!chunks.length) { toast("Type a script/prompt first."); return; }
   genBusy = true;
   const btn = btnArg || $("voiceGenBtn") || Array.from(document.querySelectorAll("#pageVoice button")).find((b) => b.textContent.includes("Generate voice"));
   const prev = btn?.textContent;
   if (btn) { btn.disabled = true; }
-  paintTrackCustom("Generating voice… 0/" + chunks.length + " (no mic — rendered in-app)");
+  paintTrackCustom("Generating voice from prompt… 0/" + chunks.length + " (zero mic needed)");
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     const ac = new AC();
     try {
       const bufs = [];
+      const persona = document.querySelector('#vvPersonaRow button.on')?.dataset.p || "neutral";
       for (let i = 0; i < chunks.length; i++) {
         if (btn) btn.textContent = "Voicing " + (i + 1) + "/" + chunks.length + "\u2026";
-        paintTrackCustom("Generating voice… " + (i + 1) + "/" + chunks.length);
+        paintTrackCustom("Rendering voice… " + (i + 1) + "/" + chunks.length);
         const raw = await fetchChunkAudio(chunks[i], tl);
-        const dec = await ac.decodeAudioData(raw.slice(0));
+        let dec = null;
+        if (raw) {
+          dec = await ac.decodeAudioData(raw.slice(0));
+        } else {
+          paintTrackCustom("CPU Offline synthesis… " + (i + 1) + "/" + chunks.length);
+          dec = await synthesizeProceduralSpeechChunk(chunks[i], tl, rate, persona);
+        }
         bufs.push(dec);
       }
       const sr = bufs[0].sampleRate;
@@ -246,8 +377,41 @@ async function genVoice(btnArg) {
         at += p.length + gap;
       }
       const wav = encodeWAV(mix);
-      setTrack(wav, "voiceover-" + tl + "-" + new Date().toISOString().slice(11, 19).replace(/:/g, "") + ".wav");
-      toast("Voiceover generated in-app — export it or merge it onto a clip.");
+      const trackName = "voiceover-" + tl + "-" + new Date().toISOString().slice(11, 19).replace(/:/g, "") + ".wav";
+      setTrack(wav, trackName);
+
+      // Auto-save to Library or direct save button clicked
+      let savedToLib = false;
+      const autoSaveChecked = $("vvAutoSaveToggle") ? $("vvAutoSaveToggle").checked : true;
+      if (forceSaveToLibrary || autoSaveChecked) {
+        try {
+          const { saveBlobToLibrary } = await import("./library-save.js");
+          const saveRes = await saveBlobToLibrary({
+            kind: "voice",
+            tab: "voice",
+            blob: wav,
+            filename: trackName,
+            prompt: text.slice(0, 160),
+            extra: {
+              name: (text.slice(0, 36) || "Voiceover").trim() + " (" + tl.toUpperCase() + ")",
+              userCat: "voice",
+              provider: "prompt-voiceover",
+              providerLabel: "Prompt Voice Studio (No Mic)",
+              duration: mix.duration,
+              actualDuration: mix.duration
+            }
+          });
+          if (saveRes && saveRes.ok !== false) savedToLib = true;
+        } catch (err) {
+          console.warn("Auto-save voice failed:", err);
+        }
+      }
+
+      if (savedToLib) {
+        toast("✨ Voice saved to inbuilt Library → Voice (prompt generated, zero mic needed)!");
+      } else {
+        toast("Voiceover generated in-app — export it or save to Library.");
+      }
     } finally {
       ac.close().catch(() => {});
     }
@@ -325,22 +489,63 @@ async function recVoice() {
 
 function injectTrackBox() {
   if (!$("voiceGenBtn")) return;
-  const gen = $("voiceGenBtn"), rec = $("voiceRecBtn"), recV = $("voiceRecVoiceBtn"),
-    imp = $("voiceImpBtn"), clr = $("voiceClrBtn"), file = $("voiceAudioFile"),
-    fs = $("vvFmtSel"), eb = $("vvExportBtn"), save = $("vvSaveBtn");
-  if (gen && !gen.dataset.bound) { gen.dataset.bound = "1"; gen.onclick = () => genVoice($("voiceGenBtn")); }
-  if (recV && !recV.dataset.bound) { recV.dataset.bound = "1"; recV.onclick = recVoice; }
-  if (eb && !eb.dataset.bound) { eb.dataset.bound = "1"; eb.onclick = exportTrack; }
-  if (fs && !fs.dataset.bound) { fs.dataset.bound = "1"; fs.onchange = syncRateOpts; }
+  const gen = $("voiceGenBtn"),
+    genSave = $("voiceGenSaveBtn"),
+    rec = $("voiceRecBtn"),
+    recV = $("voiceRecVoiceBtn"),
+    imp = $("voiceImpBtn"),
+    clr = $("voiceClrBtn"),
+    file = $("voiceAudioFile"),
+    fs = $("vvFmtSel"),
+    eb = $("vvExportBtn"),
+    save = $("vvSaveBtn");
+
+  if (gen && !gen.dataset.bound) {
+    gen.dataset.bound = "1";
+    gen.onclick = () => genVoice($("voiceGenBtn"), false);
+  }
+  if (genSave && !genSave.dataset.bound) {
+    genSave.dataset.bound = "1";
+    genSave.onclick = () => genVoice($("voiceGenSaveBtn"), true /* forceSaveToLibrary */);
+  }
+  if (recV && !recV.dataset.bound) {
+    recV.dataset.bound = "1";
+    recV.onclick = recVoice;
+  }
+  if (eb && !eb.dataset.bound) {
+    eb.dataset.bound = "1";
+    eb.onclick = exportTrack;
+  }
+  if (fs && !fs.dataset.bound) {
+    fs.dataset.bound = "1";
+    fs.onchange = syncRateOpts;
+  }
   if (save && !save.dataset.bound) {
     save.dataset.bound = "1";
     save.onclick = async () => {
       if (!track.blob) { toast("Generate or import a track first."); return; }
       try {
         const { saveBlobToLibrary } = await import("./library-save.js");
-        await saveBlobToLibrary({ kind: "voice", tab: "voice", blob: track.blob, filename: track.name || "voiceover.wav", prompt: ($("voiceTextInput")?.value || "").slice(0, 120) });
-        toast("Saved in-app → Library · Voice.");
-      } catch (e) { toast("Save failed: " + (e?.message || e)); }
+        const scriptText = $("voiceTextInput")?.value || "";
+        const r = await saveBlobToLibrary({
+          kind: "voice",
+          tab: "voice",
+          blob: track.blob,
+          filename: track.name || "voiceover.wav",
+          prompt: scriptText.slice(0, 160),
+          extra: {
+            name: (scriptText.slice(0, 36) || "Voiceover").trim() + " (Voice)",
+            userCat: "voice",
+            provider: "voice-prompt-generator",
+            providerLabel: "Prompt Voice Studio (No Mic)",
+            duration: track.duration,
+            actualDuration: track.duration
+          }
+        });
+        toast("Saved in-app → Library · Voice (0 mic/recording needed).");
+      } catch (e) {
+        toast("Save failed: " + (e?.message || e));
+      }
     };
   }
   paintTrack();
@@ -419,7 +624,7 @@ async function resampleBuffer(buf, targetSr) {
   return await off.startRendering();
 }
 
-function encodeWAV(audioBuffer, bits) {
+export function encodeWAV(audioBuffer, bits) {
   bits = Number(bits) === 32 ? 32 : 16;
   const ch = Math.min(2, audioBuffer.numberOfChannels);
   const sr = audioBuffer.sampleRate;

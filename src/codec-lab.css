@@ -379,3 +379,11 @@ html[data-mode="white"] .codec-telemetry {
   background: #f8fafc;
   border-color: rgba(0, 0, 0, 0.1);
 }
+
+.codec-key-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.codec-key-card{width:132px;border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.02)}
+.codec-key-card img{width:100%;height:56px;object-fit:cover;display:block}
+.codec-key-meta{padding:4px 6px}
+.codec-key-name{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.codec-key-row{display:flex;gap:4px;align-items:center;margin-top:4px}
+.codec-key-row input{width:52px;font-size:10px;padding:2px 4px}

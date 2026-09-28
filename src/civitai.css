@@ -1,0 +1,12 @@
+.civ-box { display: flex; flex-direction: column; gap: 8px; }
+.civ-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.civ-bar input[type="search"] { flex: 1 1 160px; min-width: 140px; }
+.civ-msg { margin: 0; }
+.civ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; max-height: 460px; overflow-y: auto; }
+.civ-card { border: 1px solid var(--line, #2a2f3a); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,.02); }
+.civ-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: zoom-in; }
+.civ-meta { padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.civ-t { font-size: 12px; line-height: 1.35; }
+.civ-t a { color: inherit; }
+.civ-s { opacity: .65; }
+.civ-row { display: flex; gap: 4px; flex-wrap: wrap; }

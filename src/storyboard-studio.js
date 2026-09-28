@@ -826,6 +826,10 @@ function buildUI() {
     else { S.name = "My Story"; S.frames = []; S.sel.clear(); S.cast = []; S.scenes = []; S.ward = []; syncControls(); render(); }
   };
   const bd = $("sbBoard");
+  $("sbCivitaiFold")?.addEventListener("toggle", async () => {
+    if (!$("sbCivitaiFold").open || $("civitaiSbBox")?.dataset.civBound) return;
+    try { (await import("./civitai.js")).mountCivitaiBrowser($("civitaiSbBox"), "storyboard"); } catch (e) { console.warn("civitai mount failed", e); }
+  });
   bd.ondragover = (e) => e.preventDefault();
   bd.ondrop = (e) => {
     const id = e.dataTransfer.getData("text/sbid");

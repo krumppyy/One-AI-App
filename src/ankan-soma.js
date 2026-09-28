@@ -185,3 +185,5 @@ export function downloadDoc(doc, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
   return { blob, kb: +(blob.size / 1024).toFixed(1) };
 }
+
+export const dataUrlToBlob = async (url) => (await fetch(url)).blob();

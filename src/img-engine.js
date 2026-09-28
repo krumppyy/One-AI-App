@@ -41,6 +41,8 @@ export const IMG_GROUPS = [
   { id: "sdxl", label: "◆ SDXL studio — tuned fast & accurate" },
   { id: "puter", label: "○ Puter — free, login once" },
   { id: "uncensored", label: "✦ Uncensored — explicit" },
+  { id: "codec", label: "◈ Codec local builds — your machine" },
+  { id: "lab", label: "🧬 Lab — your CPU models (anki-human, iani-mage)" },
   { id: "device", label: "■ This device — offline" },
 ];
 
@@ -56,6 +58,7 @@ export const IMG_MODELS = [
   { id: "pollinations-turbo", label: "Turbo — free, fastest", kinds: ["t2i"], group: "free" },
   { id: "horde-xl", label: "SDXL pool — free, face-lock edits", kinds: ["t2i", "edit"], group: "sdxl" },
   { id: "qwen-21", label: "Qwen-Image-2.1 — free, sharp + edits", kinds: ["t2i", "edit"], group: "free" },
+  { id: "qwen-codec", label: "Qwen-Image + codec — local pack · Apache 2.0", kinds: ["t2i", "edit"], group: "codec" },
   { id: "sdxl-fast", label: "SDXL Fast — quick, SFW", kinds: ["edit"], group: "sdxl" },
   { id: "sdxl-accurate", label: "SDXL Accurate — slow, precise, SFW", kinds: ["edit"], group: "sdxl" },
   { id: "sdxl-fast-nsfw", label: "SDXL Fast NSFW — quick, unfiltered", kinds: ["edit"], group: "sdxl" },
@@ -71,6 +74,8 @@ export const IMG_MODELS = [
   { id: "explicit-flux", label: "NSFW Flux — free, unfiltered", kinds: ["t2i"], group: "uncensored" },
   { id: "explicit-sdxl", label: "NSFW SDXL pool — free, uncensored edits", kinds: ["t2i", "edit"], group: "uncensored" },
   { id: "device", label: "This device — offline, CPU", kinds: ["t2i", "edit"], group: "device" },
+  { id: "anki-human-cpu", label: "Anki-Human CPU — photo + 3D character (lab-trained)", kinds: ["t2i"], group: "lab" },
+  { id: "iani-mage-cpu", label: "Iani-Mage CPU — mage + 3D character (lab-trained)", kinds: ["t2i"], group: "lab" },
 ];
 
 export const IMG_LORAS = [
@@ -624,6 +629,15 @@ async function oneRoute(modelId, args) {
     return { blob, by: modelId === "perchance-nsfw" ? "Perchance NSFW · free" : "Perchance · free" };
   }
   if (modelId === "device") return deviceRemix(args);
+  if (modelId === "qwen-codec") {
+    const { codecImageEdit } = await import("./codec-generate.js");
+    return codecImageEdit({ prompt: args.prompt, inputBlob: args.inputBlob, w: args.w, h: args.h, seed: args.seed, strength: args.strength });
+  }
+  if (modelId === "anki-human-cpu" || modelId === "iani-mage-cpu") {
+    const { renderLabImage } = await import("./anki-cpu.js");
+    const r = await renderLabImage({ prompt: args.prompt, seed: args.seed, w: args.w, h: args.h, modelId, negative: args.negative });
+    return { blob: r.blob, by: r.by };
+  }
   throw new Error(`unknown route ${modelId}`);
 }
 

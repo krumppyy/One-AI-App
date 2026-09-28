@@ -394,43 +394,6 @@
   border-color: rgba(56, 189, 248, 0.4);
 }
 
-/* Photoreal Lens & Token Chips */
-.aml-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-.aml-chip-lbl {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-right: 2px;
-}
-.aml-lens-btn,
-.aml-token-btn {
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--line);
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.14s ease;
-}
-.aml-lens-btn:hover {
-  border-color: #38bdf8;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.08);
-}
-.aml-token-btn:hover {
-  border-color: #c084fc;
-  color: #c084fc;
-  background: rgba(168, 85, 247, 0.08);
-}
-
 /* Light Theme support */
 html[data-mode="white"] .aml-panel {
   background: #ffffff;
@@ -453,3 +416,46 @@ html[data-mode="white"] .aml-train-stats {
   background: #f8fafc;
   border-color: rgba(0, 0, 0, 0.08);
 }
+#labLockGate .modal-inner { min-width: min(360px, 90vw); }
+.studio-tab.lab-locked { opacity: .85; }
+
+/* Scoped control fallback (workspace has no global .form-control) */
+#pageAIModelLab .form-control {
+  background: rgba(0,0,0,.28);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 6px 9px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+#pageAIModelLab .form-control:focus {
+  outline: none;
+  border-color: rgba(56,189,248,.55);
+}
+#pageAIModelLab .ls-range { width: 100%; accent-color: #38bdf8; }
+/* Training queue */
+.aml-queue-list { display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,.25); border: 1px solid var(--line); border-radius: 6px; padding: 5px; font-size: 10.5px; }
+.aml-queue-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 3px 6px; border-radius: 4px; background: rgba(255,255,255,.04); }
+.aml-queue-row.q-active { border: 1px solid rgba(56,189,248,.5); }
+.aml-queue-row.q-done { opacity: .75; }
+.aml-queue-row .q-loss { font-family: monospace; color: #34d399; }
+@media (max-width: 640px) {
+  .aml-train-stats { grid-template-columns: repeat(2, 1fr); }
+  .aml-mode-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+.anki-lab { border: 1px solid rgba(62,198,255,.35); }
+.anki-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(270px,1fr)); gap: 12px; margin-top: 10px; }
+.anki-card { border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.03); }
+.anki-refs { display: flex; gap: 6px; flex-wrap: wrap; }
+.anki-refs img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,.15); }
+.anki-curve { width: 100%; height: 54px; border-radius: 8px; background: rgba(0,0,0,.3); }
+.anki-prev img { width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); }
+
+.dev-log { max-height: 220px; overflow-y: auto; font-size: 11px; line-height: 1.7; }
+.dev-log div { border-bottom: 1px solid rgba(255,255,255,.05); padding: 1px 0; }
+#devEndlessThumb img { width: 128px; height: 128px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); }
+.lab-locked { opacity: .75; }
+.lock-glyph { font-size: 11px; }

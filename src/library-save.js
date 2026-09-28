@@ -32,7 +32,7 @@ export function libCategory(it = {}) {
   if (kind === "take" || kind === "image-take") return "takes";
   if (tab === "storyboard" || /^storyboard/i.test(prov)) return "storyboard";
   if (tab === "editor" || /^editor/i.test(prov)) return "editor";
-  if (kind === "voice" || tab === "voice") return "voice";
+  if (kind === "voice" || tab === "voice" || it.userCat === "voice" || String(it.mime || "").startsWith("audio/") || /\.wav$|\.mp3$|\.ogg$|\.m4a$/i.test(it.filename || "")) return "voice";
   if (kind === "reader" || tab === "reader") return "reader";
   if (kind === "import" || tab === "import") return "import";
   if (kind === "image" || String(it.mime || "").startsWith("image/")) return "image";
@@ -119,6 +119,40 @@ export async function makePoster(blob, maxSide = 384) {
     if (!frame || !frame.size) return null;
     const url = await blobToDataURL(frame);
     return url && url.startsWith("data:") ? url : null;
+  }
+  if (type.startsWith("audio/") || type.includes("wav") || type.includes("mpeg") || type.includes("ogg") || type.includes("mp3")) {
+    try {
+      const c = document.createElement("canvas");
+      c.width = 256;
+      c.height = 160;
+      const ctx = c.getContext("2d");
+      const grad = ctx.createLinearGradient(0, 0, 256, 160);
+      grad.addColorStop(0, "#1e1b4b");
+      grad.addColorStop(0.5, "#312e81");
+      grad.addColorStop(1, "#0f172a");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 256, 160);
+
+      // Symmetrical waveform graphic
+      ctx.fillStyle = "#818cf8";
+      const bars = 18;
+      const bw = 8;
+      const gap = 5;
+      const startX = (256 - (bars * (bw + gap) - gap)) / 2;
+      for (let i = 0; i < bars; i++) {
+        const h = 20 + Math.sin(i * 0.45) * 38 + Math.cos(i * 0.9) * 22;
+        const x = startX + i * (bw + gap);
+        const y = (160 - h) / 2;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, bw, h, 3) : ctx.rect(x, y, bw, h);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "bold 12px sans-serif";
+      ctx.fillText("🎙️ VOICE AUDIO", 16, 26);
+      return c.toDataURL("image/jpeg", 0.82);
+    } catch (_) {}
   }
   return null;
 }

@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="src/livestream.css">
   <link rel="stylesheet" href="src/codec-lab.css">
   <link rel="stylesheet" href="src/ai-model-lab.css">
+  <link rel="stylesheet" href="src/civitai.css">
   <script src="src/vendor/jszip.min.js"></script>
   <script src="src/perchance-shim.js"></script>
 </head>
@@ -73,6 +74,7 @@
     <button id="tabEditorBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageEditor" title="Early beta — expect rough edges">Editor <span class="ver">beta testing</span></button>
     <button id="tabCodecLabBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageCodecLab" title="Low-CPU AI Neural Vector & Particle Video Codec Lab">🧪 Codec Lab <span class="ver">AI Alpha</span></button>
     <button id="tabAIModelLabBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageAIModelLab" title="Train custom AI models, img2img, inpaint, style edit & Ankan-Soma video codec">🧬 AI Model Lab <span class="ver">AI Train</span></button>
+    <button id="tabDevInsightBtn" class="studio-tab beta-tab" type="button" role="tab" aria-selected="false" data-page="pageDevInsight" title="Private builder log — auto-updated">🔒 Dev Insight <span class="ver">private</span></button>
     </span>
   </nav>
 
@@ -280,6 +282,10 @@
         </div>
         <div id="imgPoseNote" class="model-note"></div>
       </div>
+      <details class="fold" id="imgCivitaiFold">
+        <summary>Civitai hunt <span class="hint">models · LoRAs · copyable prompts</span></summary>
+        <div id="civitaiImgBox"></div>
+      </details>
       <div class="generate-bar">
         <button id="imgGenerateBtn" class="btn btn-primary btn-lg" type="button"><span id="imgGenLabel">Generate image</span></button>
         <button id="imgCancelBtn" class="btn btn-danger btn-lg" type="button" hidden>Stop</button>
@@ -622,6 +628,10 @@
           <input id="paidToggle" type="checkbox" class="switch">
         </label>
       </details>
+      <details class="fold" id="vidCivitaiFold">
+        <summary>Civitai hunt <span class="hint">steal a look · stills as starter frames</span></summary>
+        <div id="civitaiVidBox"></div>
+      </details>
 
       <div class="generate-bar">
         <button id="generateBtn" class="btn btn-primary btn-lg" type="button">
@@ -912,6 +922,10 @@
         </details>
         <div class="hint-block">Cast, scenes and outfits import from this computer or the in-app Library, travel with the project, and any of them can join the board as a frame. Outfits can also be written straight into the image prompt.</div>
       </details>
+      <details class="fold" id="sbCivitaiFold">
+        <summary>Civitai hunt <span class="hint">reference stills · shot recipes</span></summary>
+        <div id="civitaiSbBox"></div>
+      </details>
       <div class="field"><label class="lbl">Ratio <span class="hint">hover a ratio for format · social-ready</span></label><div id="sbRatioRow" class="chips"></div></div>
       <div class="field"><label class="lbl">Thumbnails</label><div id="sbViewRow" class="seg"></div></div>
       <div class="generate-bar">
@@ -1020,11 +1034,16 @@
         <div id="vvTrackLine" class="model-note">No voiceover track (audio) yet — record or import one.</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <button id="voiceGenBtn" class="btn btn-tiny btn-primary" type="button" title="Render the script to a voiceover track in-app — no mic needed">✨ Generate voice</button>
+          <button id="voiceGenSaveBtn" class="btn btn-tiny" type="button" style="background:rgba(99,102,241,0.22);border:1px solid rgba(99,102,241,0.5);color:#a5b4fc;font-weight:700" title="Generate voice from prompt and instantly save directly to the Library (no mic or recording needed)">📚 Generate &amp; Save to Library</button>
           <button id="voiceRecBtn" class="btn btn-tiny" type="button" title="Record narration with the mic">● Narrate (mic)</button>
           <button id="voiceRecVoiceBtn" class="btn btn-tiny" type="button" title="Speak the script with the chosen voice while recording it into the track">● Rec voice</button>
           <button id="voiceImpBtn" class="btn btn-tiny" type="button">Import audio</button>
           <button id="voiceClrBtn" class="btn btn-tiny" type="button">Clear</button>
         </div>
+        <label class="switch-row compact" style="margin-top:6px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:6px;padding:4px 8px">
+          <span><strong>Auto-save prompt voices to Library</strong><em>Every generated voice is stored directly into In-App Library without recording</em></span>
+          <input id="vvAutoSaveToggle" type="checkbox" class="switch" checked>
+        </label>
         <input id="voiceAudioFile" type="file" accept="audio/*" hidden>
         <audio id="vvAudioPrev" controls style="width:100%;margin-top:8px" hidden></audio>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center">
@@ -1033,7 +1052,7 @@
           <select id="vvRateSel" class="tiny-select" title="Bitrate / bit depth"></select>
           <select id="vvSrSel" class="tiny-select" title="Sample rate"><option value="0">Source Hz</option><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="96000">96 kHz</option></select>
           <button id="vvExportBtn" class="btn btn-tiny" type="button">Export track</button>
-          <button id="vvSaveBtn" class="btn btn-tiny" type="button" title="Save this track to the Library">💾 Save in-app</button>
+          <button id="vvSaveBtn" class="btn btn-tiny" type="button" title="Save this voice track directly to the In-App Library">📚 Save to Library</button>
           <span id="vvExpNote" class="mono tiny"></span>
         </div>
       </div>
@@ -1169,6 +1188,7 @@
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <button id="pvScriptBtn" type="button" class="btn btn-tiny" title="Copy the Maker script here">← Use Maker script</button>
           <button id="pvScriptFileBtn" type="button" class="btn btn-tiny" title="Load script from a document: txt, Word, PDF…">Script from file…</button>
+          <button id="pvSaveVoiceToLibBtn" type="button" class="btn btn-tiny" style="background:rgba(99,102,241,0.22);border:1px solid rgba(99,102,241,0.5);color:#a5b4fc;font-weight:600" title="Generate voice from prompt and instantly save audio directly to In-App Library without recording">📚 Save Prompt Voice to Library</button>
         </div>
         <input id="pvScriptFile" type="file" accept=".txt,.md,.pdf,.docx,.html,.srt,.vtt,.csv,.rtf,text/plain" hidden>
       </div>
@@ -2178,6 +2198,16 @@
           </div>
         </div>
 
+        <!-- Keyframe Timeline -->
+        <div class="codec-slider-group">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:11.5px;font-weight:600">🎬 Keyframe Timeline (SDXL → video)</span>
+            <button type="button" id="codecAddKeyBtn" class="btn btn-small" title="Capture the tuned anchor above as a timeline keyframe">＋ Add keyframe</button>
+          </div>
+          <div class="codec-key-strip" id="codecKeyStrip"></div>
+          <div class="mono tiny" id="codecKeyHint" style="color:var(--muted);margin-top:4px"></div>
+        </div>
+
         <!-- Signal Decomposition Matrix & Dominant Palette -->
         <div class="codec-slider-group">
           <div>
@@ -2255,6 +2285,37 @@
             <button type="button" id="codecExportSignalBtn" class="btn btn-small" title="Export ultra-compact .onev sparse vector signal file">💾 Download .onev File</button>
             <button type="button" id="codecSendLiveBtn" class="btn btn-small" title="Add to 24/7 Livestream broadcast playlist">📡 Send to Livestream</button>
             <button type="button" id="codecSendEditorBtn" class="btn btn-small" title="Add to Timeline Editor track">🎞️ Send to Editor</button>
+            <button type="button" id="codecSendVideoBtn" class="btn btn-small" title="Load the anchor still as the Video Studio reference for a real diffusion run">🚀 Animate with Video Model</button>
+            <button type="button" id="codecAnkanBtn" class="btn btn-small" title="Save this still as a tiny native .ankan file">🖼 .ankan Still</button>
+            <button type="button" id="codecSomaBtn" class="btn btn-small" title="Save the keyframed timeline as a native .soma video file">💾 .soma Video</button>
+            <input type="file" id="codecOpenInput" accept=".ankan,.soma,.json,application/json" style="display:none">
+            <button type="button" id="codecOpenBtn" class="btn btn-small" title="Open a .ankan still or .soma video back into the player">📂 Open .ankan/.soma</button>
+            <button type="button" id="codecLibOpenBtn" class="btn btn-small" title="Open a saved .soma / .ankan from the Library">📚 Library .soma</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+            <span class="mono tiny" style="color:var(--muted)">Convert:</span>
+            <select id="codecStillFmt" class="form-control" style="font-size:11px;padding:3px 6px" title="Still image format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPG</option>
+              <option value="webp">WEBP</option>
+            </select>
+            <select id="codecStillScale" class="form-control" style="font-size:11px;padding:3px 6px" title="Still upscale">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="4">4x</option>
+            </select>
+            <button type="button" id="codecStillBtn" class="btn btn-small" title="Export the current frame as JPG/PNG/WEBP with upscale">🖼 Still → JPG/PNG</button>
+            <select id="codecVideoFmt" class="form-control" style="font-size:11px;padding:3px 6px" title="Video container">
+              <option value="mp4">MP4</option>
+              <option value="webm">WebM</option>
+              <option value="mkv">MKV</option>
+              <option value="mov">MOV</option>
+            </select>
+            <select id="codecVideoScale" class="form-control" style="font-size:11px;padding:3px 6px" title="Video resolution">
+              <option value="720p">720p</option>
+              <option value="1080p">1080p</option>
+            </select>
+            <button type="button" id="codecVideoBtn" class="btn btn-small" title="Export the timeline as MP4/WebM/MKV/MOV up to 1080p">🎬 Video → MP4/MKV</button>
           </div>
         </div>
       </section>
@@ -2500,6 +2561,7 @@
 
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button type="button" id="amlActionBtn" class="btn btn-primary btn-small" style="flex:1">✨ Generate Image-to-Image</button>
+            <button type="button" id="amlThinkGenBtn" class="btn btn-small" title="The model reads your prompt, writes a shot plan, then generates">💭 Think + Generate</button>
             <button type="button" id="amlRealDiffusionBtn" class="btn btn-small" style="background:#0284c7;color:#fff;font-weight:700" title="Direct real SDXL/FLUX diffusion with locked seed and anatomy negative">⚡ Real Diffusion Photo</button>
             <input type="file" id="amlFileInput" accept="image/*,video/*,.ankan,.soma,.json" multiple style="display:none">
             <button type="button" id="amlUploadBtn" class="btn btn-small">📁 Import Files</button>
@@ -2611,7 +2673,23 @@
             <div class="aml-progress-fill" id="amlTrainProgressFill"></div>
           </div>
 
+          <div id="amlQueueList" class="aml-queue-list" style="margin-bottom:6px"><div style="font-size:10.5px;color:var(--muted)">Queue: trains each base below one-by-one.</div></div>
+          <button type="button" id="amlQueueAllBtn" class="btn btn-small" style="margin-bottom:6px">🚂 Train all bases one-by-one</button>
           <button type="button" id="amlStartTrainBtn" class="btn btn-primary btn-small">🚀 Start Model Training on CPU</button>
+        </div>
+
+        <!-- Pose curriculum: realistic human poses, one by one, same version -->
+        <div class="aml-box" style="border-color:rgba(52,211,153,0.35)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;font-weight:700;color:#34d399">🧍 Pose Curriculum — img2img human poses</span>
+            <span class="aml-badge green">same version</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)">Trains realistic poses one by one into the active model. Every pose updates the SAME checkpoint version — nothing forks.</span>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div id="amlPoseList" class="aml-queue-list" style="flex:1"></div>
+            <canvas id="amlPoseThumb" width="160" height="90" style="width:120px;border-radius:6px;border:1px solid var(--line)" title="Latest pose sample"></canvas>
+          </div>
+          <button type="button" id="amlPoseTrainBtn" class="btn btn-primary btn-small">🧍 Train poses one-by-one</button>
         </div>
 
         <!-- In-App Library Lifecycles with Separate Categories -->
@@ -2660,6 +2738,17 @@
         </div>
       </section>
     </div>
+  </main>
+
+  <main class="layout page page-devinsight" id="pageDevInsight" hidden>
+    <section class="panel studio">
+      <div class="panel-head"><h2>🔒 Dev Insight</h2><span class="hint">private · auto-updated</span></div>
+      <div id="devInsightBody"><div class="screen-ph"><strong>Loading private log…</strong></div></div>
+    </section>
+    <section class="panel stage">
+      <div class="panel-head"><h2>Endless Trainer</h2><div class="tags"><span class="hint" id="devEndlessState">idle</span></div></div>
+      <div id="devEndlessBody"><div class="screen-ph"><strong>Loading trainer…</strong></div></div>
+    </section>
   </main>
 
   <main class="layout page" id="pageFeedback" hidden>
@@ -3647,6 +3736,7 @@ function reply(text, status, cors) {
 <script type="module" src="src/editor.js"></script>
 <script type="module" src="src/editor-agent.js"></script>
 <script type="module" src="src/guide.js"></script>
+<script type="module" src="src/dev-insight.js"></script>
 </body>
 </html>
 

@@ -2616,7 +2616,7 @@ function syncTrackNote() {
 }
 
 function switchPage(id) {
-  for (const p of ["pageChat", "pageFeedback", "pageVideo", "pageImage", "pageReader", "pageStoryboard", "pageVoice", "pageLivestream", "pageEditor", "pageCodecLab", "pageAIModelLab", "pageTutorial", "pageTutor"]) {
+  for (const p of ["pageChat", "pageFeedback", "pageVideo", "pageImage", "pageReader", "pageStoryboard", "pageVoice", "pageLivestream", "pageEditor", "pageCodecLab", "pageAIModelLab", "pageDevInsight", "pageTutorial", "pageTutor"]) {
     const el = $(p);
     if (el) el.hidden = p !== id;
   }
@@ -6006,6 +6006,12 @@ async function init() {
   bindControls();
   bindStudios();
   bindImageStudio();
+  for (const [fold, box, tab] of [["imgCivitaiFold", "civitaiImgBox", "image"], ["vidCivitaiFold", "civitaiVidBox", "video"]]) {
+    $(fold)?.addEventListener("toggle", async () => {
+      if (!$(fold).open || $(box)?.dataset.civBound) return;
+      try { (await import("./civitai.js")).mountCivitaiBrowser($(box), tab); } catch (e) { console.warn("civitai mount failed", e); }
+    }, { once: false });
+  }
   bindVoiceStudio();
   bindTokenFields();
   bindComputeFields();
