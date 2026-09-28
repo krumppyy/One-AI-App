@@ -1,5 +1,5 @@
 // One AI Studio - 24/7 Livestream, Browser Plugin, Social Feeds & OBS Virtual Studio Engine
-import JSZip from "jszip";
+import { getJSZip } from "./zip-loader.js";
 import { saveBlobToLibrary } from "./library-save.js";
 import { pickLibraryMedia } from "./lib-picker.js";
 
@@ -301,6 +301,7 @@ export function initLivestream() {
   async function downloadOneStreamPluginZip() {
     try {
       toast("Generating OneStream Broadcaster Extension package...");
+      const JSZip = await getJSZip();
       const zip = new JSZip();
 
       // 1. manifest.json (Manifest V3)
