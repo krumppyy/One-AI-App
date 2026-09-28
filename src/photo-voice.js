@@ -93,14 +93,22 @@ async function loadMedia(blob, name) {
   const img = $("pvPreviewImg"), vid = $("pvPreviewVid");
   if (img) img.hidden = true;
   if (vid) { vid.hidden = true; vid.removeAttribute("src"); vid.load(); }
+  
+  const tlGroup = $("pvTimelineGroup");
   if (isVideo) {
     const info = await probeVideo(url);
     media.W = info.W; media.H = info.H; media.dur = info.dur;
     if (vid) { vid.src = url; vid.hidden = false; }
+    if (tlGroup) {
+      tlGroup.hidden = false;
+      const endInp = $("pvRangeEndInput");
+      if (endInp && media.dur) endInp.value = media.dur.toFixed(1);
+    }
   } else {
     media.bmp = await createImageBitmap(blob);
     media.W = media.bmp.width; media.H = media.bmp.height;
     if (img) { img.src = url; img.hidden = false; }
+    if (tlGroup) tlGroup.hidden = true;
   }
   paintMedia();
 }
@@ -146,15 +154,24 @@ async function render() {
     if (useFile && !voiceFile.blob) { toast("Import a voiceover audio file first (mp3, wav, ogg…)."); return; }
     btn.disabled = true; btn.textContent = "Voicing…";
     const audioBuf = useFile ? await decodeVoiceFile(voiceFile.blob) : await buildVoiceAudio(text);
-    const total = audioBuf.duration + 0.8;
+
+    const useRange = media.kind === "video" && ($("pvRangeToggle") ? $("pvRangeToggle").checked : false);
+    const inPoint = useRange ? Math.max(0, Number($("pvRangeStartInput")?.value) || 0) : 0;
+    const dubDur = audioBuf.duration;
+    const outPoint = useRange ? Math.max(inPoint + 0.3, Number($("pvRangeEndInput")?.value) || (inPoint + dubDur)) : (inPoint + dubDur);
+    const total = media.kind === "video" ? Math.max(media.dur || 0, outPoint, inPoint + dubDur + 0.3) : (dubDur + 0.8);
+
     const talkOn = $("pvTalkToggle") ? $("pvTalkToggle").checked : true;
     let mouthEnv = null, mouthPos = { x: 0.5, y: 0.72, w: 60 };
+    let lipDraw = null, lipDrawVideo = null;
     try {
       const lip = await import("./lipsync-lite.js");
-      mouthEnv = lip.envelopeFor(audioBuf, 30, total);
+      mouthEnv = lip.envelopeFor(audioBuf, 30, dubDur + 0.5);
       if (media.kind !== "video" && media.bmp) mouthPos = await lip.findMouth(media.bmp);
-      var lipDraw = lip.drawTalking;
+      lipDraw = lip.drawTalking;
+      lipDrawVideo = lip.drawTalkingVideoFrame;
     } catch {}
+
     let W = 720, H = 1280;
     if (media.kind === "video") {
       const s = Math.min(1, 720 / media.W, 1280 / media.H);
@@ -170,18 +187,20 @@ async function render() {
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext("2d");
     let bgVideo = null;
+
     const drawImage = (t) => {
       const g = Math.min(1, t / total);
-      const z = 1 + 0.06 * g;
+      const z = 1 + 0.05 * g;
       if (talkOn && mouthEnv && typeof lipDraw === "function" && media.bmp) {
         const o = mouthEnv[Math.min(mouthEnv.length - 1, Math.floor(t * 30))] || 0;
-        lipDraw(ctx, media.bmp, W, H, o, mouthPos, z);
+        lipDraw(ctx, media.bmp, W, H, o, mouthPos, z, t);
       } else {
         const dw = W * z, dh = H * z;
         ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
         ctx.drawImage(media.bmp, (W - dw) / 2, (H - dh) / 2, dw, dh);
       }
     };
+
     const drawVideo = () => {
       if (!bgVideo) return;
       const iw = bgVideo.videoWidth || W, ih = bgVideo.videoHeight || H;
@@ -190,6 +209,7 @@ async function render() {
       ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
       ctx.drawImage(bgVideo, (W - dw) / 2, (H - dh) / 2, dw, dh);
     };
+
     if (media.kind === "video") {
       bgVideo = document.createElement("video");
       bgVideo.muted = true; bgVideo.playsInline = true; bgVideo.src = media.url;
@@ -197,6 +217,7 @@ async function render() {
       await bgVideo.play().catch(() => {});
       drawVideo();
     } else drawImage(0);
+
     btn.textContent = "Filming…";
     setStatus("Filming " + total.toFixed(1) + "s video…");
     const stream = canvas.captureStream(30);
@@ -215,41 +236,104 @@ async function render() {
     const done = new Promise((res) => { rec.onstop = res; });
     const t0 = performance.now();
     let raf = 0;
+
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
-      if (media.kind === "video") drawVideo(); else drawImage(t);
+      if (media.kind === "video") {
+        if (!bgVideo) return;
+        let o = 0;
+        if (talkOn && mouthEnv) {
+          if (useRange) {
+            if (t >= inPoint && t <= inPoint + dubDur) {
+              const idx = Math.min(mouthEnv.length - 1, Math.floor((t - inPoint) * 30));
+              o = mouthEnv[Math.max(0, idx)] || 0;
+            }
+          } else {
+            const idx = Math.min(mouthEnv.length - 1, Math.floor(t * 30));
+            o = mouthEnv[Math.max(0, idx)] || 0;
+          }
+        }
+        if (typeof lipDrawVideo === "function") {
+          lipDrawVideo(ctx, bgVideo, W, H, o, mouthPos, t);
+        } else {
+          drawVideo();
+        }
+      } else {
+        drawImage(t);
+      }
       raf = requestAnimationFrame(tick);
     };
+
     tick();
-    srcN.start();
+    srcN.start(ac.currentTime + (useRange ? inPoint : 0));
     rec.start(250);
+
     await new Promise((res) => {
       const poll = () => { ((performance.now() - t0) / 1000 >= total + 0.25) ? res() : setTimeout(poll, 120); };
       poll();
     });
+
     cancelAnimationFrame(raf);
     rec.stop(); await done;
     try { srcN.stop(); } catch {}
     try { bgVideo && bgVideo.pause(); } catch {}
     ac.close().catch(() => {});
+
     const realExt = (mime || rec.mimeType || "").includes("mp4") ? "mp4" : "webm";
     const out = new Blob(parts, { type: mime || rec.mimeType || "video/mp4" });
     if (!out.size) throw new Error("render produced nothing");
     if (voiced.url) try { URL.revokeObjectURL(voiced.url); } catch {}
     voiced = { blob: out, url: URL.createObjectURL(out), ext: realExt };
     window.PV_LAST = voiced;
+
     const v = $("pvVideo");
     if (v) { v.src = voiced.url; v.play().catch(() => {}); }
+
     const dl = $("pvDlBtn");
-    if (dl) { dl.hidden = false; dl.textContent = "Download " + realExt.toUpperCase(); }
+    if (dl) { dl.hidden = false; dl.textContent = "💾 Download " + realExt.toUpperCase(); }
+
+    const saveLib = $("pvSaveLibBtn");
+    if (saveLib) {
+      saveLib.hidden = false;
+      saveLib.onclick = async () => {
+        try {
+          const { saveBlobToLibrary } = await import("./library-save.js");
+          await saveBlobToLibrary({
+            kind: "final",
+            tab: "voice",
+            blob: out,
+            filename: "voiceover-" + Date.now().toString(36) + "." + realExt,
+            prompt: text.slice(0, 120),
+            extra: { provider: "voiceover-studio", providerLabel: "Voiceover Studio", duration: total, actualDuration: total }
+          });
+          toast("Saved Voiceover video to Library!");
+        } catch (e) {
+          toast("Save error: " + (e?.message || e));
+        }
+      };
+    }
+
     try {
       const { saveBlobToLibrary } = await import("./library-save.js");
-      saveBlobToLibrary({ kind: "final", tab: "voice", blob: out, filename: "voiceover-" + new Date().toISOString().slice(0, 10) + "." + realExt, prompt: text.slice(0, 120), extra: { provider: "voiceover-studio", providerLabel: "Voiceover Studio", duration: total, actualDuration: total } });
+      saveBlobToLibrary({
+        kind: "final",
+        tab: "voice",
+        blob: out,
+        filename: "voiceover-" + new Date().toISOString().slice(0, 10) + "." + realExt,
+        prompt: text.slice(0, 120),
+        extra: { provider: "voiceover-studio", providerLabel: "Voiceover Studio", duration: total, actualDuration: total }
+      });
     } catch (e) {}
-    setStatus("Done — " + total.toFixed(1) + "s " + realExt.toUpperCase() + " · " + (out.size / 1024).toFixed(0) + " KB · background on screen, voiceover on track.");
-    toast("Voiceover " + realExt.toUpperCase() + " ready — playing above. Hit Download.");
-  } catch (e) { setStatus("Failed: " + (e?.message || e)); toast("Render failed: " + (e?.message || e)); }
-  finally { btn.disabled = false; btn.textContent = "Render voiceover → video"; }
+
+    setStatus("Done — " + total.toFixed(1) + "s " + realExt.toUpperCase() + " · " + (out.size / 1024).toFixed(0) + " KB · lips, teeth & expressions rendered.");
+    toast("Voiceover " + realExt.toUpperCase() + " ready — playing above. Hit Download or Save.");
+  } catch (e) {
+    setStatus("Failed: " + (e?.message || e));
+    toast("Render failed: " + (e?.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🎬 Render Voiceover Video";
+  }
 }
 function pvLog(m) { const el = $("pvLog"); if (el) el.textContent = (el.textContent === "Ready." ? "" : el.textContent + "\n") + m; }
 function inject() {
@@ -258,46 +342,104 @@ function inject() {
   const grab = (id) => $(id);
   grab("pvPickBtn").dataset.bound = "1";
   grab("pvPickBtn").onclick = () => grab("pvFile").click();
-  grab("pvFile").onchange = async () => { const f = grab("pvFile").files?.[0]; grab("pvFile").value = ""; if (!f) return; try { setStatus("Reading " + f.name + "\u2026"); pvLog("Background: " + f.name); await loadMedia(f, f.name); setStatus("Background ready."); } catch (e) { setStatus("Background failed: " + (e?.message || e)); } };
+  grab("pvFile").onchange = async () => {
+    const f = grab("pvFile").files?.[0];
+    grab("pvFile").value = "";
+    if (!f) return;
+    try {
+      setStatus("Reading " + f.name + "…");
+      pvLog("Background: " + f.name);
+      await loadMedia(f, f.name);
+      setStatus("Background ready.");
+    } catch (e) {
+      setStatus("Background failed: " + (e?.message || e));
+    }
+  };
+
   if (grab("pvLibBtn")) grab("pvLibBtn").onclick = () => openPvLibrary();
+
+  const rangeToggle = $("pvRangeToggle");
+  if (rangeToggle) {
+    rangeToggle.onchange = () => {
+      const row = $("pvRangeRow");
+      if (row) row.hidden = !rangeToggle.checked;
+    };
+  }
+
   grab("pvSampleBtn").onclick = async () => {
     try {
-      setStatus("Loading sample letter\u2026");
+      setStatus("Loading sample portrait…");
       const r = await fetch("src/assets/education.jpg");
       if (!r.ok) throw new Error("sample missing (HTTP " + r.status + ")");
       await loadMedia(await r.blob(), "education-letter.jpg");
-      setStatus("Sample letter loaded.");
-    } catch (e) { setStatus("Sample failed: " + (e?.message || e)); }
+      setStatus("Sample portrait loaded.");
+    } catch (e) {
+      setStatus("Sample failed: " + (e?.message || e));
+    }
   };
-  if (grab("pvScriptBtn")) grab("pvScriptBtn").onclick = () => { const s = $("voiceTextInput")?.value || ""; if (!s.trim()) { toast("Maker script is empty \u2014 type it in Voice Maker first."); return; } setStatus("Maker script linked (" + s.length + " chars). Render uses it."); toast("Maker script linked."); };
+
+  if (grab("pvScriptBtn")) {
+    grab("pvScriptBtn").onclick = () => {
+      const s = $("voiceTextInput")?.value || "";
+      if (!s.trim()) { toast("Maker script is empty — type it in Voice Maker first."); return; }
+      setStatus("Maker script linked (" + s.length + " chars). Render uses it.");
+      toast("Maker script linked.");
+    };
+  }
+
   if (grab("pvScriptFileBtn")) {
     grab("pvScriptFileBtn").onclick = () => grab("pvScriptFile").click();
-    grab("pvScriptFile").onchange = () => { const f = grab("pvScriptFile").files?.[0]; grab("pvScriptFile").value = ""; if (f) loadScriptFile(f); };
+    grab("pvScriptFile").onchange = () => {
+      const f = grab("pvScriptFile").files?.[0];
+      grab("pvScriptFile").value = "";
+      if (f) loadScriptFile(f);
+    };
   }
-  grab("pvVoiceSrcSel").onchange = () => { grab("pvAudioBtn").hidden = grab("pvVoiceSrcSel").value !== "file"; paintMedia(); };
+
+  grab("pvVoiceSrcSel").onchange = () => {
+    grab("pvAudioBtn").hidden = grab("pvVoiceSrcSel").value !== "file";
+    paintMedia();
+  };
   grab("pvAudioBtn").onclick = () => grab("pvAudioFile").click();
-  grab("pvAudioFile").onchange = () => { const f = grab("pvAudioFile").files?.[0]; grab("pvAudioFile").value = ""; if (f) { voiceFile = { blob: f, name: f.name }; paintMedia(); setStatus("Voiceover audio ready: " + f.name); } };
+  grab("pvAudioFile").onchange = () => {
+    const f = grab("pvAudioFile").files?.[0];
+    grab("pvAudioFile").value = "";
+    if (f) {
+      voiceFile = { blob: f, name: f.name };
+      paintMedia();
+      setStatus("Voiceover audio ready: " + f.name);
+    }
+  };
+
   grab("pvRenderBtn").onclick = render;
   grab("pvDlBtn").onclick = () => {
     if (!voiced.blob) return;
-    const a = document.createElement("a"); a.href = voiced.url; a.download = "lipsync-" + new Date().toISOString().slice(0, 10) + "." + voiced.ext;
-    document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 2000);
+    const a = document.createElement("a");
+    a.href = voiced.url;
+    a.download = "voiceover-" + new Date().toISOString().slice(0, 10) + "." + voiced.ext;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 2000);
   };
+
   try { window.__pvLoadMedia = loadMedia; } catch {}
   paintMedia();
 }
+
 async function openPvLibrary() {
   try {
-    const { listHistory, getHistory } = await import("./store.js");
-    const rows = (await listHistory()).filter((r) => /image|video|png|jpg|jpeg|webp|mp4|webm/i.test(String(r.mime || r.ext || r.filename || ""))).slice(0, 12);
-    if (!rows.length) { toast("Library has no faces yet."); return; }
-    const pick = rows[0];
-    const full = await getHistory(pick.key);
-    const blob = full?.video || full?.image;
-    if (!blob?.size) { toast("Couldn't open that file."); return; }
-    await loadMedia(blob, full.filename || "library-face");
-    toast("Library face loaded.");
-  } catch (e) { toast("Library unavailable right now."); }
+    const { pickLibraryMedia } = await import("./lib-picker.js");
+    const res = await pickLibraryMedia({ accept: "all", title: "Select Face Image or Video from Library" });
+    if (!res) return;
+    const it = res.item || res;
+    const blob = res.blob || it.video || it.image || it.blob;
+    if (blob) {
+      await loadMedia(blob, it.filename || it.name || "library-media");
+      toast("Loaded from Library: " + (it.filename || it.name || "media"));
+    }
+  } catch (e) {
+    toast("Could not open Library item.");
+  }
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(inject, 600));
 else setTimeout(inject, 600);

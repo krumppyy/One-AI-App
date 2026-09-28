@@ -1118,33 +1118,66 @@
         <span class="hint">photo → talking video</span>
       </div>
       <div class="field">
-        <label class="lbl">1 · Face <span class="hint">photo or video · computer or Library</span></label>
+        <label class="lbl">1 · Face Media <span class="hint">photo or video · computer or in-app Library</span></label>
         <div id="pvPhotoLine" class="model-note">No background yet — import a photo or a video (mp4, webm, mov…).</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <button id="pvPickBtn" type="button" class="btn btn-tiny">⤓ Import photo / video</button>
-          <button id="pvLibBtn" type="button" class="btn btn-tiny" title="Pick a face from the Library">Library</button>
-          <button id="pvSampleBtn" type="button" class="btn btn-tiny">Use sample letter</button>
+          <button id="pvLibBtn" type="button" class="btn btn-tiny" title="Pick an AI-generated face or video from the Library">📚 From Library</button>
+          <button id="pvSampleBtn" type="button" class="btn btn-tiny">Use sample portrait</button>
         </div>
         <input id="pvFile" type="file" accept="image/*,video/*,.mp4,.m4v,.mov,.webm,.mkv,.avi,.png,.jpg,.jpeg,.webp,.gif,.bmp" hidden>
-        <label class="switch-row compact" style="margin-top:8px"><span><strong>Talking mouth</strong><em>Photo mouth moves with the voice</em></span><input id="pvTalkToggle" type="checkbox" class="switch" checked></label>
+        
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;background:rgba(0,0,0,0.22);border:1px solid var(--line);border-radius:8px;padding:8px">
+          <label class="switch-row compact" style="margin:0">
+            <span><strong>Lip, Teeth &amp; Facial Mimicking</strong><em>Animated dental enamel, tongue &amp; vermilion lips</em></span>
+            <input id="pvTalkToggle" type="checkbox" class="switch" checked>
+          </label>
+          <label class="switch-row compact" style="margin:0">
+            <span><strong>Micro-Expressions &amp; Eye Blinks</strong><em>Natural periodic blinking &amp; vocal eyebrow raise</em></span>
+            <input id="pvExprToggle" type="checkbox" class="switch" checked>
+          </label>
+        </div>
+
+        <!-- Video Timeline Selective Dubbing -->
+        <div id="pvTimelineGroup" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;background:rgba(0,0,0,0.22);border:1px solid var(--line);border-radius:8px;padding:8px" hidden>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:11px;font-weight:700;color:#38bdf8">⏱️ Timeline Selective Dubbing</span>
+            <label style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text);cursor:pointer">
+              <input type="checkbox" id="pvRangeToggle">
+              <span>Selected Timeline Part [A .. B]</span>
+            </label>
+          </div>
+          <div id="pvRangeRow" style="display:grid;grid-template-columns:1fr 1fr;gap:6px" hidden>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:10px;color:var(--muted)">In-Point [A] (seconds)</span>
+              <input type="number" id="pvRangeStartInput" class="form-control mono" min="0" step="0.1" value="0.0" style="font-size:11px;padding:3px 6px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:10px;color:var(--muted)">Out-Point [B] (seconds)</span>
+              <input type="number" id="pvRangeEndInput" class="form-control mono" min="0" step="0.1" value="5.0" style="font-size:11px;padding:3px 6px">
+            </div>
+          </div>
+          <span style="font-size:9.5px;color:var(--muted)">Keep original video frames before [A] and after [B]; voiceover &amp; facial lipsync only animate between [A .. B].</span>
+        </div>
       </div>
       <div class="field">
-        <label class="lbl" for="pvVoiceSrcSel">2 · Voiceover source</label>
-        <div class="key-row"><select id="pvVoiceSrcSel"><option value="tts">Generated voice (from Maker script)</option><option value="track">Voice Maker track</option><option value="file">Audio file (mp3 / wav / ogg)</option></select>
+        <label class="lbl" for="pvVoiceSrcSel">2 · Voiceover Source</label>
+        <div class="key-row"><select id="pvVoiceSrcSel"><option value="tts">Generated Voice (from Maker Script / TTS)</option><option value="track">Voice Maker Recorded Track</option><option value="file">Imported Audio File (MP3 / WAV / OGG / M4A)</option></select>
         <button id="pvAudioBtn" type="button" class="btn btn-tiny" hidden>Import audio…</button></div>
         <input id="pvAudioFile" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" hidden>
         <div id="pvAudioLine" class="model-note">Voiceover: Maker script, or import an mp3/wav.</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <button id="pvScriptBtn" type="button" class="btn btn-tiny" title="Copy the Maker script here">← Use Maker script</button>
-          <button id="pvScriptFileBtn" type="button" class="btn btn-tiny" title="Load the script from a file: txt, Word, PDF…">Script from file…</button>
+          <button id="pvScriptFileBtn" type="button" class="btn btn-tiny" title="Load script from a document: txt, Word, PDF…">Script from file…</button>
         </div>
         <input id="pvScriptFile" type="file" accept=".txt,.md,.pdf,.docx,.html,.srt,.vtt,.csv,.rtf,text/plain" hidden>
       </div>
       <div class="generate-bar">
-        <button id="pvRenderBtn" type="button" class="btn btn-primary btn-lg">Render lipsync → video</button>
-        <button id="pvDlBtn" type="button" class="btn btn-tiny" hidden>Download</button>
+        <button id="pvRenderBtn" type="button" class="btn btn-primary btn-lg">🎬 Render Voiceover Video</button>
+        <button id="pvDlBtn" type="button" class="btn btn-tiny" hidden>💾 Download Video</button>
+        <button id="pvSaveLibBtn" type="button" class="btn btn-tiny" hidden title="Save output video to In-App Library">📚 Save in Library</button>
       </div>
-      <div id="pvStatus" class="model-note" style="margin-top:6px">Background on screen + voiceover on track → MP4 (WebM where MP4 isn't supported). Nothing is recorded.</div>
+      <div id="pvStatus" class="model-note" style="margin-top:6px">Local CPU/GPU accelerated video synthesis. Mimics lips, teeth, and expressions into standard MP4/WebM.</div>
     </section>
     <section class="panel stage">
       <div class="panel-head"><h2>Viewer</h2><div class="tags"><span class="tag">face + voice</span></div></div>
