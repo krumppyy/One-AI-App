@@ -2379,6 +2379,48 @@
           </div>
           <input type="text" id="amlPromptInput" class="form-control" value="Futuristic android portrait with glowing chromatic ocular implants" placeholder="Enter prompt for generation, edit or inpainting...">
 
+          <!-- Optical Lens Focal Lengths & Photoreal Token Presets -->
+          <div style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.2);border:1px solid var(--line);border-radius:8px;padding:8px">
+            <div class="aml-chip-row">
+              <span class="aml-chip-lbl">📷 Lens Focal:</span>
+              <button type="button" class="aml-lens-btn" data-lens="85mm f/1.4 portrait prime lens">85mm f/1.4</button>
+              <button type="button" class="aml-lens-btn" data-lens="50mm f/1.8 standard prime lens">50mm f/1.8</button>
+              <button type="button" class="aml-lens-btn" data-lens="35mm f/2.0 documentary lens">35mm f/2.0</button>
+              <button type="button" class="aml-lens-btn" data-lens="140mm telephoto compression lens">140mm Tele</button>
+              <button type="button" class="aml-lens-btn" data-lens="24mm wide angle cinematic lens">24mm Wide</button>
+            </div>
+            <div class="aml-chip-row">
+              <span class="aml-chip-lbl">✨ Photoreal:</span>
+              <button type="button" class="aml-token-btn" data-token="natural skin pores, realistic subsurface scattering, delicate skin micro-creases">Skin Pores</button>
+              <button type="button" class="aml-token-btn" data-token="soft cinematic rim lighting, catchlights in eyes">Rim Light</button>
+              <button type="button" class="aml-token-btn" data-token="dramatic rembrandt key lighting, subtle chiaroscuro">Rembrandt</button>
+              <button type="button" class="aml-token-btn" data-token="warm golden hour sun sidelight, atmospheric haze">Golden Hour</button>
+            </div>
+          </div>
+
+          <!-- Anatomy Negative Prompt (Anatomy Guard) -->
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label style="font-size:10.5px;font-weight:600;color:#f87171">Anatomy &amp; Quality Negative Filter</label>
+              <span class="mono tiny" style="color:var(--muted)">Seed &amp; Anatomy Guard</span>
+            </div>
+            <input type="text" id="amlNegativeInput" class="form-control" value="deformed anatomy, disfigured, extra fingers, mutated hands, missing limbs, fused fingers, bad anatomy, unnatural skin smoothness, plastic wax skin, asymmetric eyes, lowres, blurry, distorted face, extra arms, bad proportions" style="font-size:10px" placeholder="Negative anatomy prompt to prevent distortions...">
+          </div>
+
+          <!-- Seed Lock & Route Status -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:8px;padding:6px 10px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer">
+              <input type="checkbox" id="amlSeedLockToggle" checked>
+              <span>🔒 Seed Locked</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--muted)">Seed:</span>
+              <input type="number" id="amlSeedInput" class="form-control" value="424242" style="width:90px;font-size:10.5px;padding:2px 6px">
+              <button type="button" id="amlRandomSeedBtn" class="btn btn-tiny" title="Randomize seed">🎲 Random</button>
+            </div>
+            <span class="aml-badge green" id="amlRouteBadge" title="Pre-routed to real SDXL/FLUX diffusion with offline canvas fallback">⚡ Real Diffusion</span>
+          </div>
+
           <!-- Style Select (Edit Mode) -->
           <div id="amlEditControls" style="display:flex;align-items:center;justify-content:space-between;gap:8px" hidden>
             <span style="font-size:11.5px;font-weight:600">Style Preset:</span>
@@ -2425,6 +2467,7 @@
 
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button type="button" id="amlActionBtn" class="btn btn-primary btn-small" style="flex:1">✨ Generate Image-to-Image</button>
+            <button type="button" id="amlRealDiffusionBtn" class="btn btn-small" style="background:#0284c7;color:#fff;font-weight:700" title="Direct real SDXL/FLUX diffusion with locked seed and anatomy negative">⚡ Real Diffusion Photo</button>
             <input type="file" id="amlFileInput" accept="image/*,video/*,.ankan,.soma,.json" multiple style="display:none">
             <button type="button" id="amlUploadBtn" class="btn btn-small">📁 Import Files</button>
             <button type="button" id="amlLibBtn" class="btn btn-small">📚 Library</button>
@@ -2444,8 +2487,9 @@
             <div style="display:flex;flex-direction:column;gap:2px">
               <label style="font-size:10px;font-weight:600;color:var(--muted)">Architecture Backbone</label>
               <select id="amlArchSelect" class="form-control" style="font-size:11px;padding:3px 6px">
-                <option value="ankan-flow" selected>Ankan-Soma Flow (Low-CPU)</option>
-                <option value="lora-adapter">LoRA Rank Adapter (SDXL/Wan2GP)</option>
+                <option value="lora-adapter" selected>LoRA Rank Adapter (SDXL / FLUX Base)</option>
+                <option value="dreambooth">DreamBooth LoRA (GPU Exportable)</option>
+                <option value="ankan-flow">Ankan-Soma Flow (Low-CPU &lt;5%)</option>
                 <option value="spectral-centroid">16-Centroid Tone Matrix</option>
                 <option value="depth-split">2.5D Depth Split (Fg/Bg)</option>
               </select>
@@ -2489,13 +2533,14 @@
             </div>
           </div>
 
-          <!-- Attached Datasets List -->
+          <!-- Attached Datasets List & Diverse Photo References Loader -->
           <div>
             <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:3px">
               <span>Attached Training Datasets:</span>
               <span id="amlDatasetCountBadge">1 item</span>
             </div>
-            <div id="amlDatasetList" style="max-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:6px;padding:4px">
+            <button type="button" id="amlLoadDiverseRefsBtn" class="btn btn-tiny" style="width:100%;margin-bottom:4px;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;font-weight:600">📥 Load 25 Diverse Captioned Photo Refs (85mm/35mm/140mm/50mm/24mm)</button>
+            <div id="amlDatasetList" style="max-height:95px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:6px;padding:4px">
               <div style="font-size:10.5px;color:var(--muted);padding:2px 4px">Default Synthetic Anchor (1280x720)</div>
             </div>
           </div>
